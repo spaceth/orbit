@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #1d1d1f;
+  --muted: #6e6e73;
+  --panel-heading: #000000;
+  --panel: rgba(255, 255, 255, 0.72);
+  --panel-border: #ddd;
+  --border-subtle: rgba(0, 0, 0, 0.1);
+  --surface-active: rgba(0, 0, 0, 0.08);
+  --surface-hover: rgba(0, 0, 0, 0.04);
+  --surface-skeleton: rgba(0, 0, 0, 0.05);
+  --error: #ef4444;
+  --canvas-background: #ffffff;
+  --marker: #000000;
+  --orbit-trail: #000000;
+  --earth-ocean: #f2f2f2;
+  --earth-land: #d1d1d1;
+}
+
+/* Dark mode overrides — wire up with next-themes or a .dark class on <html> */
+.dark {
+  color-scheme: dark;
+  --background: #000000;
+  --foreground: #f5f5f7;
+  --muted: #a1a1a6;
+  --panel-heading: #f5f5f7;
+  --panel: #000000;
+  --panel-border: #333;
+  --border-subtle: rgba(255, 255, 255, 0.12);
+  --surface-active: rgba(255, 255, 255, 0.1);
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --surface-skeleton: rgba(255, 255, 255, 0.06);
+  --error: #ff453a;
+  --canvas-background: #000000;
+  --marker: #ffffff;
+  --orbit-trail: #ffffff;
+  --earth-ocean: #111111;
+  --earth-land: #b5b5b5;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-panel-heading: var(--panel-heading);
+  --color-panel: var(--panel);
+  --color-border-subtle: var(--border-subtle);
+  --color-surface-active: var(--surface-active);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-skeleton: var(--surface-skeleton);
+  --color-error: var(--error);
+  --font-sans: "aktiv-grotesk-thai", sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.glass-panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 0;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+@media (max-width: 640px) {
+  .glass-panel.fixed.top-5.left-5 {
+    top: auto;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(92vw, 22rem);
+  }
+}
