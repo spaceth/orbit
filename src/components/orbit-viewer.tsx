@@ -54,10 +54,10 @@ export function OrbitViewer() {
   } = useSatellites();
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-background text-foreground transition-colors">
+    <div className="relative h-full min-h-dvh w-full overflow-hidden bg-background text-foreground transition-colors">
       <SpaceTHLogo />
       <ThemeToggle />
-      <div className="satellite-shell max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:z-20 sm:contents">
+      <div className="satellite-shell max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:z-20 max-sm:bg-background max-sm:pb-[env(safe-area-inset-bottom)] sm:contents">
         <SiteFooter />
         <SatellitePanel
           satellites={SATELLITES}
