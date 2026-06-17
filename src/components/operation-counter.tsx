@@ -29,7 +29,7 @@ export function OperationCounter({ launchDate }: OperationCounterProps) {
   }
 
   return (
-    <p className="mt-1 text-sm tabular-nums text-muted">
+    <p className="mt-1 text-sm tabular-nums text-panel-heading">
       {formatOperationDuration(duration)}
     </p>
   );
