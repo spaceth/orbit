@@ -27,8 +27,14 @@ const GlobeScene = dynamic(
 export function OrbitViewer() {
   const themeColors = useThemeColors();
   const [mobileReadingMode, setMobileReadingMode] = useState(false);
+  const [earthFocused, setEarthFocused] = useState(false);
+  const [earthFocusRequest, setEarthFocusRequest] = useState(0);
   const handleMobileReadingModeChange = useCallback((readingMode: boolean) => {
     setMobileReadingMode(readingMode);
+  }, []);
+  const focusEarth = useCallback(() => {
+    setEarthFocused(true);
+    setEarthFocusRequest((request) => request + 1);
   }, []);
   const {
     tles,
@@ -53,6 +59,27 @@ export function OrbitViewer() {
     toggleVisibility,
   } = useSatellites();
 
+  const handleSelectNoradId = useCallback(
+    (noradId: number) => {
+      setEarthFocused(false);
+      selectNoradId(noradId);
+    },
+    [selectNoradId],
+  );
+
+  const handleSelectFutureId = useCallback(
+    (id: string) => {
+      setEarthFocused(false);
+      selectFutureId(id);
+    },
+    [selectFutureId],
+  );
+
+  const handleDeselect = useCallback(() => {
+    setEarthFocused(false);
+    deselect();
+  }, [deselect]);
+
   return (
     <div className="relative h-full min-h-dvh w-full overflow-hidden bg-background text-foreground transition-colors">
       <SpaceTHLogo />
@@ -72,8 +99,8 @@ export function OrbitViewer() {
           activeFutureSatellite={activeFutureSatellite}
           activeTle={activeTle}
           activeTelemetry={activeTelemetry}
-          onSelectNoradId={selectNoradId}
-          onSelectFutureId={selectFutureId}
+          onSelectNoradId={handleSelectNoradId}
+          onSelectFutureId={handleSelectFutureId}
           onHoverNoradId={setHoverNoradId}
           onHoverFutureId={setHoverFutureId}
           onToggleVisibility={toggleVisibility}
@@ -91,9 +118,12 @@ export function OrbitViewer() {
             activeNoradId={activeNoradId}
             highlightedNoradId={highlightedNoradId}
             mobileReadingMode={mobileReadingMode}
-            onSelectNoradId={selectNoradId}
+            onSelectNoradId={handleSelectNoradId}
             onHoverNoradId={setHoverNoradId}
-            onDeselect={deselect}
+            onFocusEarth={focusEarth}
+            onDeselect={handleDeselect}
+            earthFocused={earthFocused}
+            earthFocusRequest={earthFocusRequest}
             onTelemetryUpdate={updateTelemetry}
           />
         ) : null}

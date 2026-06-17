@@ -10,6 +10,8 @@ import { getEcfPosition, type SatRec } from "@/lib/orbit";
 
 interface CameraControllerProps {
   activeNoradId: number | null;
+  earthFocused: boolean;
+  earthFocusRequest: number;
   satellites: { noradId: number; satrec: SatRec }[];
 }
 
@@ -27,7 +29,12 @@ function lerpFactor(delta: number, speed: number): number {
   return 1 - Math.exp(-speed * delta);
 }
 
-export function CameraController({ activeNoradId, satellites }: CameraControllerProps) {
+export function CameraController({
+  activeNoradId,
+  earthFocused,
+  earthFocusRequest,
+  satellites,
+}: CameraControllerProps) {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const { camera } = useThree();
   const desiredCamera = useRef(new Vector3());
@@ -51,13 +58,23 @@ export function CameraController({ activeNoradId, satellites }: CameraController
     }
   }, [activeNoradId]);
 
+  useEffect(() => {
+    if (earthFocusRequest === 0) {
+      return;
+    }
+    isFocusing.current = true;
+    focusSpeed.current = 12;
+  }, [earthFocusRequest]);
+
   useFrame((_, delta) => {
     const controls = controlsRef.current;
     if (!controls) {
       return;
     }
 
-    if (activeNoradId === null) {
+    const shouldFocusEarth = activeNoradId === null || earthFocused;
+
+    if (shouldFocusEarth) {
       if (isFocusing.current) {
         const t = lerpFactor(delta, focusSpeed.current);
 

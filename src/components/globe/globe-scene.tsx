@@ -22,7 +22,10 @@ interface GlobeSceneProps {
   mobileReadingMode: boolean;
   onSelectNoradId: (noradId: number) => void;
   onHoverNoradId: (noradId: number | null) => void;
+  onFocusEarth: () => void;
   onDeselect: () => void;
+  earthFocused: boolean;
+  earthFocusRequest: number;
   onTelemetryUpdate: (noradId: number, telemetry: SatelliteTelemetry) => void;
 }
 
@@ -35,7 +38,10 @@ function SceneContent({
   mobileReadingMode,
   onSelectNoradId,
   onHoverNoradId,
+  onFocusEarth,
   onDeselect,
+  earthFocused,
+  earthFocusRequest,
   onTelemetryUpdate,
 }: GlobeSceneProps) {
   const satellites = useMemo(
@@ -54,7 +60,7 @@ function SceneContent({
       <ambientLight intensity={0.9} />
       <directionalLight position={[5, 2, 5]} intensity={2} />
       <directionalLight position={[-3, -1, -2]} intensity={0.6} />
-      <Earth colors={themeColors} onClick={onDeselect} />
+      <Earth colors={themeColors} onClick={onFocusEarth} />
 
       {satellites.map((satellite) => {
         if (hiddenNoradIds.has(satellite.noradId)) {
@@ -92,7 +98,12 @@ function SceneContent({
         );
       })}
 
-      <CameraController activeNoradId={activeNoradId} satellites={satellites} />
+      <CameraController
+        activeNoradId={activeNoradId}
+        earthFocused={earthFocused}
+        earthFocusRequest={earthFocusRequest}
+        satellites={satellites}
+      />
       <CameraViewportOffset mobileReadingMode={mobileReadingMode} />
     </>
   );
