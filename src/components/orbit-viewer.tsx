@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useCallback, useState } from "react";
 
 import { SatellitePanel } from "@/components/satellite-panel";
 import { SpaceTHLogo } from "@/components/spaceth-logo";
@@ -24,6 +25,10 @@ const GlobeScene = dynamic(
 
 export function OrbitViewer() {
   const themeColors = useThemeColors();
+  const [mobileReadingMode, setMobileReadingMode] = useState(false);
+  const handleMobileReadingModeChange = useCallback((readingMode: boolean) => {
+    setMobileReadingMode(readingMode);
+  }, []);
   const {
     tles,
     loading,
@@ -69,6 +74,7 @@ export function OrbitViewer() {
         onHoverNoradId={setHoverNoradId}
         onHoverFutureId={setHoverFutureId}
         onToggleVisibility={toggleVisibility}
+        onMobileReadingModeChange={handleMobileReadingModeChange}
         loading={loading}
         error={error}
       />
@@ -80,6 +86,7 @@ export function OrbitViewer() {
             hiddenNoradIds={hiddenNoradIds}
             activeNoradId={activeNoradId}
             highlightedNoradId={highlightedNoradId}
+            mobileReadingMode={mobileReadingMode}
             onSelectNoradId={selectNoradId}
             onHoverNoradId={setHoverNoradId}
             onDeselect={deselect}

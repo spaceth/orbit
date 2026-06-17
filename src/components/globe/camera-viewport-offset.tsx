@@ -4,26 +4,36 @@ import { useThree } from "@react-three/fiber";
 import { useEffect } from "react";
 import type { PerspectiveCamera } from "three";
 
-const MOBILE_QUERY = "(max-width: 640px)";
-/** Globe focal point on mobile — 40% from top (default is 50%). */
-const MOBILE_CENTER_FROM_TOP = 0.4;
+import {
+  MOBILE_CAMERA_CENTER_COLLAPSED,
+  MOBILE_CAMERA_CENTER_READING,
+  MOBILE_MEDIA_QUERY,
+} from "@/lib/mobile-layout";
 
 function applyViewportOffset(
   camera: PerspectiveCamera,
   width: number,
   height: number,
   isMobile: boolean,
+  readingMode: boolean,
 ) {
   if (!isMobile) {
     camera.clearViewOffset();
   } else {
-    const offsetY = height * (0.5 - MOBILE_CENTER_FROM_TOP);
+    const centerFromTop = readingMode
+      ? MOBILE_CAMERA_CENTER_READING
+      : MOBILE_CAMERA_CENTER_COLLAPSED;
+    const offsetY = height * (0.5 - centerFromTop);
     camera.setViewOffset(width, height, 0, offsetY, width, height);
   }
   camera.updateProjectionMatrix();
 }
 
-export function CameraViewportOffset() {
+interface CameraViewportOffsetProps {
+  mobileReadingMode: boolean;
+}
+
+export function CameraViewportOffset({ mobileReadingMode }: CameraViewportOffsetProps) {
   const { camera, size } = useThree();
 
   useEffect(() => {
@@ -32,16 +42,22 @@ export function CameraViewportOffset() {
     }
 
     const perspective = camera as PerspectiveCamera;
-    const media = window.matchMedia(MOBILE_QUERY);
+    const media = window.matchMedia(MOBILE_MEDIA_QUERY);
 
     const update = () => {
-      applyViewportOffset(perspective, size.width, size.height, media.matches);
+      applyViewportOffset(
+        perspective,
+        size.width,
+        size.height,
+        media.matches,
+        mobileReadingMode,
+      );
     };
 
     update();
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
-  }, [camera, size.width, size.height]);
+  }, [camera, size.width, size.height, mobileReadingMode]);
 
   return null;
 }

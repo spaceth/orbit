@@ -19,6 +19,7 @@ interface GlobeSceneProps {
   hiddenNoradIds: ReadonlySet<number>;
   activeNoradId: number | null;
   highlightedNoradId: number | null;
+  mobileReadingMode: boolean;
   onSelectNoradId: (noradId: number) => void;
   onHoverNoradId: (noradId: number | null) => void;
   onDeselect: () => void;
@@ -31,6 +32,7 @@ function SceneContent({
   hiddenNoradIds,
   activeNoradId,
   highlightedNoradId,
+  mobileReadingMode,
   onSelectNoradId,
   onHoverNoradId,
   onDeselect,
@@ -89,7 +91,7 @@ function SceneContent({
       })}
 
       <CameraController activeNoradId={activeNoradId} satellites={satellites} />
-      <CameraViewportOffset />
+      <CameraViewportOffset mobileReadingMode={mobileReadingMode} />
     </>
   );
 }

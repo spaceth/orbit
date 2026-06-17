@@ -1,11 +1,16 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import type {
   FutureSatelliteRecord,
   SatelliteRecord,
   SatelliteTelemetry,
   TleData,
 } from "@/types/satellite";
+
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { MOBILE_MEDIA_QUERY } from "@/lib/mobile-layout";
 
 import { OperationCounter } from "./operation-counter";
 import { VisibilityIcon } from "./visibility-icon";
@@ -28,6 +33,7 @@ interface SatellitePanelProps {
   onHoverNoradId: (noradId: number | null) => void;
   onHoverFutureId: (id: string | null) => void;
   onToggleVisibility: (noradId: number) => void;
+  onMobileReadingModeChange: (readingMode: boolean) => void;
   loading: boolean;
   error: string | null;
 }
@@ -73,13 +79,64 @@ export function SatellitePanel({
   onHoverNoradId,
   onHoverFutureId,
   onToggleVisibility,
+  onMobileReadingModeChange,
   loading,
   error,
 }: SatellitePanelProps) {
   const availableSet = new Set(availableNoradIds);
+  const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
+  const panelRef = useRef<HTMLElement>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
+  const [readingMode, setReadingMode] = useState(false);
+
+  const hasDetail =
+    !loading &&
+    !error &&
+    (activeFutureSatellite !== null || (activeSatellite !== null && activeTle !== null));
+
+  const updateReadingMode = useCallback(
+    (next: boolean) => {
+      setReadingMode(next);
+      onMobileReadingModeChange(next);
+    },
+    [onMobileReadingModeChange],
+  );
+
+  useEffect(() => {
+    updateReadingMode(false);
+    if (panelRef.current) {
+      panelRef.current.scrollTop = 0;
+    }
+  }, [activeNoradId, activeFutureId, updateReadingMode]);
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    const detail = detailRef.current;
+
+    if (!isMobile || !panel || !detail || !hasDetail) {
+      updateReadingMode(false);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        updateReadingMode(entry.isIntersecting);
+      },
+      { root: panel, threshold: 0.15 },
+    );
+
+    observer.observe(detail);
+    return () => observer.disconnect();
+  }, [hasDetail, isMobile, updateReadingMode]);
 
   return (
-    <aside className="glass-panel satellite-panel fixed top-5 left-5 z-20 w-[min(92vw,22rem)] p-5">
+    <aside
+      ref={panelRef}
+      className={[
+        "glass-panel satellite-panel fixed top-5 left-5 z-20 w-[min(92vw,22rem)] p-5",
+        isMobile && readingMode ? "satellite-panel--reading" : "",
+      ].join(" ")}
+    >
       <p className="text-xs font-medium uppercase tracking-[0.14em] text-panel-heading">
         In Orbit
       </p>
@@ -191,81 +248,85 @@ export function SatellitePanel({
 
       {error && <p className="mt-4 text-sm text-error">{error}</p>}
 
-      {!loading && !error && activeFutureSatellite && (
-        <>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
-            {activeFutureSatellite.name}
-          </h1>
-          <p className="mt-1 text-sm text-muted">{activeFutureSatellite.purpose}</p>
-          <p className="mt-1 text-sm text-muted">
-            {activeFutureSatellite.launchInfo}
-            {activeFutureSatellite.operator
-              ? ` · ${activeFutureSatellite.operator}`
-              : null}
-          </p>
-          <p className="mt-3 text-sm leading-relaxed text-muted">
-            {activeFutureSatellite.description}
-          </p>
-          <p className="mt-5 text-sm text-muted">Not yet in orbit — tracking unavailable.</p>
-        </>
-      )}
-
-      {!loading && !error && activeSatellite && activeTle && !activeFutureSatellite && (
-        <>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
-            {activeSatellite.name}
-          </h1>
-          {activeSatellite.launchDate ? (
-            <OperationCounter launchDate={activeSatellite.launchDate} />
-          ) : null}
-          <p className="mt-1 text-sm text-muted">
-            {activeSatellite.purpose}
-            {activeSatellite.launchDate
-              ? ` · Launched ${formatLaunchDate(activeSatellite.launchDate)}`
-              : null}
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            NORAD {activeTle.noradId} · TLE {formatTleAge(activeTle.date)}
-          </p>
-
-          {activeSatellite.description ? (
-            <p className="mt-3 text-sm leading-relaxed text-muted">
-              {activeSatellite.description}
-            </p>
+      {hasDetail ? (
+        <div ref={detailRef}>
+          {activeFutureSatellite ? (
+            <>
+              <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
+                {activeFutureSatellite.name}
+              </h1>
+              <p className="mt-1 text-sm text-muted">{activeFutureSatellite.purpose}</p>
+              <p className="mt-1 text-sm text-muted">
+                {activeFutureSatellite.launchInfo}
+                {activeFutureSatellite.operator
+                  ? ` · ${activeFutureSatellite.operator}`
+                  : null}
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-muted">
+                {activeFutureSatellite.description}
+              </p>
+              <p className="mt-5 text-sm text-muted">Not yet in orbit — tracking unavailable.</p>
+            </>
           ) : null}
 
-          {activeTelemetry ? (
-            <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-              <div>
-                <dt className="text-muted">Latitude</dt>
-                <dd className="mt-0.5 font-medium tabular-nums text-foreground">
-                  {formatCoord(activeTelemetry.latitude, "N", "S")}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted">Longitude</dt>
-                <dd className="mt-0.5 font-medium tabular-nums text-foreground">
-                  {formatCoord(activeTelemetry.longitude, "E", "W")}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted">Altitude</dt>
-                <dd className="mt-0.5 font-medium tabular-nums text-foreground">
-                  {activeTelemetry.altitudeKm.toFixed(1)} km
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted">Velocity</dt>
-                <dd className="mt-0.5 font-medium tabular-nums text-foreground">
-                  {activeTelemetry.velocityKmS.toFixed(2)} km/s
-                </dd>
-              </div>
-            </dl>
-          ) : (
-            <p className="mt-5 text-sm text-muted">Computing position…</p>
-          )}
-        </>
-      )}
+          {activeSatellite && activeTle && !activeFutureSatellite ? (
+            <>
+              <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
+                {activeSatellite.name}
+              </h1>
+              {activeSatellite.launchDate ? (
+                <OperationCounter launchDate={activeSatellite.launchDate} />
+              ) : null}
+              <p className="mt-1 text-sm text-muted">
+                {activeSatellite.purpose}
+                {activeSatellite.launchDate
+                  ? ` · Launched ${formatLaunchDate(activeSatellite.launchDate)}`
+                  : null}
+              </p>
+              <p className="mt-1 text-sm text-muted">
+                NORAD {activeTle.noradId} · TLE {formatTleAge(activeTle.date)}
+              </p>
+
+              {activeSatellite.description ? (
+                <p className="mt-3 text-sm leading-relaxed text-muted">
+                  {activeSatellite.description}
+                </p>
+              ) : null}
+
+              {activeTelemetry ? (
+                <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                  <div>
+                    <dt className="text-muted">Latitude</dt>
+                    <dd className="mt-0.5 font-medium tabular-nums text-foreground">
+                      {formatCoord(activeTelemetry.latitude, "N", "S")}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted">Longitude</dt>
+                    <dd className="mt-0.5 font-medium tabular-nums text-foreground">
+                      {formatCoord(activeTelemetry.longitude, "E", "W")}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted">Altitude</dt>
+                    <dd className="mt-0.5 font-medium tabular-nums text-foreground">
+                      {activeTelemetry.altitudeKm.toFixed(1)} km
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted">Velocity</dt>
+                    <dd className="mt-0.5 font-medium tabular-nums text-foreground">
+                      {activeTelemetry.velocityKmS.toFixed(2)} km/s
+                    </dd>
+                  </div>
+                </dl>
+              ) : (
+                <p className="mt-5 text-sm text-muted">Computing position…</p>
+              )}
+            </>
+          ) : null}
+        </div>
+      ) : null}
     </aside>
   );
 }

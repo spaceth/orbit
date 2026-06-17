@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { ThemeColorMeta } from "@/components/theme-color-meta";
 import { ThemeProvider } from "@/components/theme-provider";
 import { themeInitScript } from "@/lib/theme-init-script";
 
@@ -19,11 +20,15 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <head>
+        <meta name="theme-color" content="#ffffff" />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <link rel="stylesheet" href="https://use.typekit.net/ayj4ilb.css" />
       </head>
       <body className="h-full overflow-hidden font-sans">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <ThemeColorMeta />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

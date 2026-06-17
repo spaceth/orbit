@@ -81,5 +81,10 @@ body {
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    transition: max-height 0.35s ease;
+  }
+
+  .satellite-panel--reading {
+    max-height: 70dvh;
   }
 }
