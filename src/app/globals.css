@@ -55,11 +55,23 @@
   --font-sans: "aktiv-grotesk-thai", sans-serif;
 }
 
+html {
+  background-color: #ffffff;
+}
+
+html.dark {
+  background-color: #000000;
+}
+
 body {
-  background: var(--background);
+  background-color: #ffffff;
   color: var(--foreground);
   font-family: var(--font-sans);
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark body {
+  background-color: #000000;
 }
 
 .glass-panel {

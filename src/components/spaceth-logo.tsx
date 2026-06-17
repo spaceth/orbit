@@ -19,7 +19,7 @@ export function SpaceTHLogo() {
         rel="noopener noreferrer"
         className="transition-opacity duration-300"
       >
-        <img src={logoSrc} alt="SpaceTH" className="h-[20px] w-auto" />
+        <img src={logoSrc} alt="SpaceTH" className="h-4 w-auto sm:h-[20px]" />
       </a>
     </div>
   );
