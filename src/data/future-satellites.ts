@@ -24,23 +24,5 @@ export const FUTURE_SATELLITES = [
       "Planned third-generation Earth observation satellite for Thailand, continuing GISTDA's remote sensing capabilities for mapping, agriculture, and disaster monitoring.",
     launchInfo: "2027",
     operator: "GISTDA",
-  },
-  {
-    id: "knacksat-3",
-    name: "KnackSat-3",
-    purpose: "Education",
-    description:
-      "KnackSat-3 is a Thai CubeSat developed by King Mongkut’s University of Technology North Bangkok. It will test new technologies for satellite communication, navigation, and Earth observation.",
-    launchInfo: "2027",
-    operator: "KMNTNB",
-  },
-  {
-    id: "thaicom-9",
-    name: "Thaicom 9",
-    purpose: "Communication",
-    description:
-      "Planned communications satellite to expand broadband and broadcast services across the Asia-Pacific region.",
-    launchInfo: "2027",
-    operator: "Thaicom",
   }
 ] as const satisfies readonly FutureSatelliteRecord[];
