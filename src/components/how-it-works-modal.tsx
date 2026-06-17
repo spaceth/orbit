@@ -31,7 +31,7 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button
         type="button"
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0"
         onClick={onClose}
         aria-label="Close dialog"
       />
@@ -39,7 +39,7 @@ export function HowItWorksModal({ open, onClose }: HowItWorksModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="how-it-works-title"
-        className="glass-panel relative z-10 max-h-[min(80dvh,32rem)] w-full max-w-md overflow-y-auto p-5"
+        className="relative z-10 max-h-[min(80dvh,32rem)] w-full max-w-md overflow-y-auto border border-panel-border bg-white p-5 dark:bg-black"
       >
         <div className="flex items-start justify-between gap-4">
           <h2 id="how-it-works-title" className="text-sm font-semibold text-foreground">
