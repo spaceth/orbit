@@ -1,6 +1,6 @@
 # Orbit
 
-Orbit is a minimal 3D satellite tracker for Thailand spacecraft, built by SpaceTH. It lets you see where Thai satellites are above Earth in a visual, interactive, and easy-to-understand way, without needing to open any specialized tracking software.
+Orbit is a minimal 3D satellite tracker for Thailand spacecraft, built by Spaceth. It lets you see where Thai satellites are above Earth in a visual, interactive, and easy-to-understand way, without needing to open any specialized tracking software.
 
 The site does not “guess” where a satellite is. Instead, it uses real orbital data called **TLE**, then calculates where each satellite should be at the current moment.
 
