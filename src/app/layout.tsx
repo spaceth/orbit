@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { GoogleAnalytics } from "@/components/google-analytics";
 import { ThemeColorMeta } from "@/components/theme-color-meta";
 import { ThemeProvider } from "@/components/theme-provider";
 import { themeInitScript } from "@/lib/theme-init-script";
@@ -25,6 +26,7 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://use.typekit.net/ayj4ilb.css" />
       </head>
       <body className="h-full overflow-hidden font-sans">
+        <GoogleAnalytics />
         <ThemeProvider>
           <ThemeColorMeta />
           {children}
