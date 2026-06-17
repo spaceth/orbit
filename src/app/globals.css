@@ -6,7 +6,7 @@
   --foreground: #1d1d1f;
   --muted: #6e6e73;
   --panel-heading: #000000;
-  --panel: rgba(255, 255, 255, 0.72);
+  --panel: #ffffff;
   --panel-border: #ddd;
   --border-subtle: rgba(0, 0, 0, 0.1);
   --surface-active: rgba(0, 0, 0, 0.08);
@@ -97,11 +97,13 @@ html.dark body {
 }
 
 .glass-panel {
-  background: var(--panel);
+  background: #ffffff;
   border: 1px solid var(--panel-border);
   border-radius: 0;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+}
+
+html.dark .glass-panel {
+  background: #000000;
 }
 
 @media (max-width: 640px) {
