@@ -17,7 +17,9 @@ export type SatellitePurpose =
   | "Communication"
   | "Military"
   | "Education"
-  | "Earth Observation";
+  | "Earth Observation"
+  | "Technology Demonstration"
+  | "Science";
 
 /** Static registry entry — add or remove satellites in `src/data/satellites.ts`. */
 export interface SatelliteRecord {
@@ -28,4 +30,14 @@ export interface SatelliteRecord {
   launchDate?: string;
   operator?: string;
   manufacturer?: string;
+}
+
+/** Planned spacecraft — add or remove in `src/data/future-satellites.ts`. */
+export interface FutureSatelliteRecord {
+  id: string;
+  name: string;
+  purpose: SatellitePurpose;
+  description: string;
+  launchInfo: string;
+  operator?: string;
 }

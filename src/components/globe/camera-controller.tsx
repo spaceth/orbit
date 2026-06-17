@@ -133,8 +133,8 @@ export function CameraController({ activeNoradId, satellites }: CameraController
     <OrbitControls
       ref={controlsRef}
       enablePan={false}
-      minDistance={0.3}
-      maxDistance={20}
+      minDistance={0.08}
+      maxDistance={40}
       enableDamping
       dampingFactor={0.05}
       rotateSpeed={0.5}

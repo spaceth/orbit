@@ -71,11 +71,15 @@ body {
 }
 
 @media (max-width: 640px) {
-  .glass-panel.fixed.top-5.left-5 {
+  .satellite-panel {
     top: auto;
-    bottom: 1.25rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(92vw, 22rem);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 35dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 }

@@ -8,6 +8,7 @@ import type { ThemeColors } from "@/lib/theme";
 import type { SatelliteTelemetry, TleData } from "@/types/satellite";
 
 import { CameraController } from "./camera-controller";
+import { CameraViewportOffset } from "./camera-viewport-offset";
 import { Earth } from "./earth";
 import { OrbitTrail } from "./orbit-trail";
 import { SatelliteMarker } from "./satellite-marker";
@@ -88,6 +89,7 @@ function SceneContent({
       })}
 
       <CameraController activeNoradId={activeNoradId} satellites={satellites} />
+      <CameraViewportOffset />
     </>
   );
 }

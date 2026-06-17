@@ -31,7 +31,7 @@ function MoonIcon() {
 }
 
 export function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -42,12 +42,30 @@ export function ThemeToggle() {
 
   const isDark = resolvedTheme === "dark";
 
+  const handleToggle = () => {
+    if (theme === "system") {
+      setTheme(isDark ? "light" : "dark");
+      return;
+    }
+    if (theme === "dark") {
+      setTheme("light");
+      return;
+    }
+    setTheme("dark");
+  };
+
   return (
     <button
       type="button"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      onClick={handleToggle}
       className="fixed top-5 right-5 z-30 flex h-8 w-8 items-center justify-center text-foreground transition-opacity hover:opacity-60"
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={
+        theme === "system"
+          ? `Using system appearance (${isDark ? "dark" : "light"}). Switch to ${isDark ? "light" : "dark"} mode.`
+          : isDark
+            ? "Switch to light mode"
+            : "Switch to dark mode"
+      }
     >
       {isDark ? <SunIcon /> : <MoonIcon />}
     </button>

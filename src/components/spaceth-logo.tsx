@@ -1,9 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export function SpaceTHLogo() {
   const [hover, setHover] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const logoSrc = mounted && resolvedTheme === "dark" ? "/spaceth-dark.svg" : "/spaceth.svg";
 
   return (
     <div
@@ -19,7 +26,7 @@ export function SpaceTHLogo() {
           hover ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
-        <img src="/spaceth.svg" alt="SpaceTH" className="h-[20px] w-auto" />
+        <img src={logoSrc} alt="SpaceTH" className="h-[20px] w-auto" />
       </a>
     </div>
   );

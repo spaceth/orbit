@@ -1,20 +1,32 @@
 "use client";
 
-import type { SatelliteRecord, SatelliteTelemetry, TleData } from "@/types/satellite";
+import type {
+  FutureSatelliteRecord,
+  SatelliteRecord,
+  SatelliteTelemetry,
+  TleData,
+} from "@/types/satellite";
 
+import { OperationCounter } from "./operation-counter";
 import { VisibilityIcon } from "./visibility-icon";
 
 interface SatellitePanelProps {
   satellites: readonly SatelliteRecord[];
+  futureSatellites: readonly FutureSatelliteRecord[];
   availableNoradIds: number[];
   hiddenNoradIds: ReadonlySet<number>;
   activeNoradId: number | null;
+  activeFutureId: string | null;
   highlightedNoradId: number | null;
+  hoverFutureId: string | null;
   activeSatellite: SatelliteRecord | null;
+  activeFutureSatellite: FutureSatelliteRecord | null;
   activeTle: TleData | null;
   activeTelemetry: SatelliteTelemetry | null;
   onSelectNoradId: (noradId: number) => void;
+  onSelectFutureId: (id: string) => void;
   onHoverNoradId: (noradId: number | null) => void;
+  onHoverFutureId: (id: string | null) => void;
   onToggleVisibility: (noradId: number) => void;
   loading: boolean;
   error: string | null;
@@ -45,15 +57,21 @@ function formatLaunchDate(date: string): string {
 
 export function SatellitePanel({
   satellites,
+  futureSatellites,
   availableNoradIds,
   hiddenNoradIds,
   activeNoradId,
+  activeFutureId,
   highlightedNoradId,
+  hoverFutureId,
   activeSatellite,
+  activeFutureSatellite,
   activeTle,
   activeTelemetry,
   onSelectNoradId,
+  onSelectFutureId,
   onHoverNoradId,
+  onHoverFutureId,
   onToggleVisibility,
   loading,
   error,
@@ -61,9 +79,9 @@ export function SatellitePanel({
   const availableSet = new Set(availableNoradIds);
 
   return (
-    <aside className="glass-panel fixed top-5 left-5 z-20 w-[min(92vw,22rem)] p-5">
+    <aside className="glass-panel satellite-panel fixed top-5 left-5 z-20 w-[min(92vw,22rem)] p-5">
       <p className="text-xs font-medium uppercase tracking-[0.14em] text-panel-heading">
-        Orbit
+        In Orbit
       </p>
 
       <div className="mt-4 space-y-1">
@@ -130,6 +148,40 @@ export function SatellitePanel({
         })}
       </div>
 
+      {futureSatellites.length > 0 ? (
+        <>
+          <p className="mt-5 text-xs font-medium uppercase tracking-[0.14em] text-muted">
+            Upcoming
+          </p>
+          <div className="mt-2 space-y-1">
+            {futureSatellites.map((satellite) => {
+              const isActive = activeFutureId === satellite.id;
+              const isHighlighted = hoverFutureId === satellite.id;
+
+              return (
+                <button
+                  key={satellite.id}
+                  type="button"
+                  onClick={() => onSelectFutureId(satellite.id)}
+                  onMouseEnter={() => onHoverFutureId(satellite.id)}
+                  onMouseLeave={() => onHoverFutureId(null)}
+                  className={[
+                    "flex w-full items-center justify-between px-2 py-1 text-left text-sm transition-colors",
+                    isActive ? "bg-surface-active" : isHighlighted ? "bg-surface-hover" : "",
+                  ].join(" ")}
+                >
+                  <span className="font-medium text-foreground">
+                    {satellite.name}
+                    <span className="ml-1 font-normal text-muted opacity-70">Upcoming</span>
+                  </span>
+                  <span className="ml-2 shrink-0 text-xs text-muted">{satellite.purpose}</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      ) : null}
+
       {loading && (
         <div className="mt-4 space-y-3">
           <div className="h-6 w-40 animate-pulse bg-surface-skeleton" />
@@ -139,11 +191,33 @@ export function SatellitePanel({
 
       {error && <p className="mt-4 text-sm text-error">{error}</p>}
 
-      {!loading && !error && activeSatellite && activeTle && (
+      {!loading && !error && activeFutureSatellite && (
+        <>
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
+            {activeFutureSatellite.name}
+          </h1>
+          <p className="mt-1 text-sm text-muted">{activeFutureSatellite.purpose}</p>
+          <p className="mt-1 text-sm text-muted">
+            {activeFutureSatellite.launchInfo}
+            {activeFutureSatellite.operator
+              ? ` · ${activeFutureSatellite.operator}`
+              : null}
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            {activeFutureSatellite.description}
+          </p>
+          <p className="mt-5 text-sm text-muted">Not yet in orbit — tracking unavailable.</p>
+        </>
+      )}
+
+      {!loading && !error && activeSatellite && activeTle && !activeFutureSatellite && (
         <>
           <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
             {activeSatellite.name}
           </h1>
+          {activeSatellite.launchDate ? (
+            <OperationCounter launchDate={activeSatellite.launchDate} />
+          ) : null}
           <p className="mt-1 text-sm text-muted">
             {activeSatellite.purpose}
             {activeSatellite.launchDate

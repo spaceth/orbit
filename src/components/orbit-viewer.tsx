@@ -7,6 +7,7 @@ import { SpaceTHLogo } from "@/components/spaceth-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useSatellites } from "@/hooks/use-satellites";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { FUTURE_SATELLITES } from "@/lib/future-satellites";
 import { SATELLITES } from "@/lib/satellites";
 
 const GlobeScene = dynamic(
@@ -28,14 +29,19 @@ export function OrbitViewer() {
     loading,
     error,
     activeNoradId,
+    activeFutureId,
     highlightedNoradId,
+    hoverFutureId,
     activeSatellite,
+    activeFutureSatellite,
     activeTle,
     activeTelemetry,
     availableNoradIds,
     hiddenNoradIds,
     selectNoradId,
+    selectFutureId,
     setHoverNoradId,
+    setHoverFutureId,
     deselect,
     updateTelemetry,
     toggleVisibility,
@@ -47,15 +53,21 @@ export function OrbitViewer() {
       <ThemeToggle />
       <SatellitePanel
         satellites={SATELLITES}
+        futureSatellites={FUTURE_SATELLITES}
         availableNoradIds={availableNoradIds}
         hiddenNoradIds={hiddenNoradIds}
         activeNoradId={activeNoradId}
+        activeFutureId={activeFutureId}
         highlightedNoradId={highlightedNoradId}
+        hoverFutureId={hoverFutureId}
         activeSatellite={activeSatellite}
+        activeFutureSatellite={activeFutureSatellite}
         activeTle={activeTle}
         activeTelemetry={activeTelemetry}
         onSelectNoradId={selectNoradId}
+        onSelectFutureId={selectFutureId}
         onHoverNoradId={setHoverNoradId}
+        onHoverFutureId={setHoverFutureId}
         onToggleVisibility={toggleVisibility}
         loading={loading}
         error={error}
