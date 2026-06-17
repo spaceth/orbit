@@ -25,7 +25,9 @@ export const metadata: Metadata = {
   description:
     "An interactive look at Thailand's satellites in orbit, from their paths above Earth to the missions that put the country on the space map.",
   icons: {
-    icon: "/favicon.png",
+    icon: [{ url: "/favicon.png", type: "image/png", sizes: "512x512" }],
+    shortcut: "/favicon.png",
+    apple: [{ url: "/favicon.png", type: "image/png", sizes: "512x512" }],
   },
   openGraph: {
     title: OG_TITLE,
