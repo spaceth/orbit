@@ -61,6 +61,26 @@ function formatLaunchDate(date: string): string {
   });
 }
 
+function ChevronIcon({ expanded }: { expanded: boolean }) {
+  return (
+    <svg
+      className={[
+        "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
+        expanded ? "rotate-90" : "",
+      ].join(" ")}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+}
+
 export function SatellitePanel({
   satellites,
   futureSatellites,
@@ -88,6 +108,7 @@ export function SatellitePanel({
   const panelRef = useRef<HTMLElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
   const [readingMode, setReadingMode] = useState(false);
+  const [upcomingExpanded, setUpcomingExpanded] = useState(false);
 
   const hasDetail =
     !loading &&
@@ -133,7 +154,7 @@ export function SatellitePanel({
     <aside
       ref={panelRef}
       className={[
-        "glass-panel satellite-panel fixed top-5 left-5 z-20 w-[min(92vw,22rem)] p-5",
+        "glass-panel satellite-panel fixed top-5 left-5 z-20 w-[min(92vw,22rem)] p-5 max-sm:relative max-sm:top-auto max-sm:left-auto max-sm:z-auto max-sm:w-full",
         isMobile && readingMode ? "satellite-panel--reading" : "",
       ].join(" ")}
     >
@@ -207,42 +228,50 @@ export function SatellitePanel({
 
       {futureSatellites.length > 0 ? (
         <>
-          <p className="mt-5 text-xs font-medium uppercase tracking-[0.14em] text-muted">
+          <button
+            type="button"
+            onClick={() => setUpcomingExpanded((expanded) => !expanded)}
+            className="mt-5 flex w-full items-center gap-1.5 text-left text-xs font-medium uppercase tracking-[0.14em] text-muted transition-colors hover:text-foreground"
+            aria-expanded={upcomingExpanded}
+          >
+            <ChevronIcon expanded={upcomingExpanded} />
             Upcoming
-          </p>
-          <div className="mt-2 space-y-1">
-            {futureSatellites.map((satellite) => {
-              const isActive = activeFutureId === satellite.id;
-              const isHighlighted = hoverFutureId === satellite.id;
+          </button>
+          {upcomingExpanded ? (
+            <div className="mt-2 space-y-1">
+              {futureSatellites.map((satellite) => {
+                const isActive = activeFutureId === satellite.id;
+                const isHighlighted = hoverFutureId === satellite.id;
 
-              return (
-                <div
-                  key={satellite.id}
-                  className={[
-                    "flex items-center transition-colors",
-                    isActive ? "bg-surface-active" : isHighlighted ? "bg-surface-hover" : "",
-                  ].join(" ")}
-                >
-                  <button
-                    type="button"
-                    onClick={() => onSelectFutureId(satellite.id)}
-                    onMouseEnter={() => onHoverFutureId(satellite.id)}
-                    onMouseLeave={() => onHoverFutureId(null)}
-                    className="flex min-w-0 flex-1 items-center justify-between px-2 py-1 text-left text-sm"
+                return (
+                  <div
+                    key={satellite.id}
+                    className={[
+                      "flex items-center transition-colors",
+                      isActive ? "bg-surface-active" : isHighlighted ? "bg-surface-hover" : "",
+                    ].join(" ")}
                   >
-                    <span className="font-medium text-foreground">
-                      {satellite.name}
-                      <span className="ml-1 font-normal text-muted opacity-70">
-                        {satellite.launchInfo}
+                    <button
+                      type="button"
+                      onClick={() => onSelectFutureId(satellite.id)}
+                      onMouseEnter={() => onHoverFutureId(satellite.id)}
+                      onMouseLeave={() => onHoverFutureId(null)}
+                      className="flex min-w-0 flex-1 items-center justify-between px-2 py-1 text-left text-sm"
+                    >
+                      <span className="font-medium text-foreground">
+                        {satellite.name}
+                        <span className="ml-1 font-normal text-muted opacity-70">
+                          {satellite.launchInfo}
+                        </span>
                       </span>
-                    </span>
-                    <span className="ml-2 shrink-0 text-xs text-muted">{satellite.purpose}</span>
-                  </button>
-                  <span className="mr-1 h-6 w-6 shrink-0" aria-hidden />
-                </div>
-              );
-            })}
-          </div>
+                      <span className="ml-2 shrink-0 text-xs text-muted">{satellite.purpose}</span>
+                    </button>
+                    <span className="mr-1 h-6 w-6 shrink-0" aria-hidden />
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
         </>
       ) : null}
 

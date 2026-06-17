@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useState } from "react";
 
 import { SatellitePanel } from "@/components/satellite-panel";
+import { SiteFooter } from "@/components/site-footer";
 import { SpaceTHLogo } from "@/components/spaceth-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useSatellites } from "@/hooks/use-satellites";
@@ -56,28 +57,31 @@ export function OrbitViewer() {
     <div className="relative h-dvh w-full overflow-hidden bg-background text-foreground transition-colors">
       <SpaceTHLogo />
       <ThemeToggle />
-      <SatellitePanel
-        satellites={SATELLITES}
-        futureSatellites={FUTURE_SATELLITES}
-        availableNoradIds={availableNoradIds}
-        hiddenNoradIds={hiddenNoradIds}
-        activeNoradId={activeNoradId}
-        activeFutureId={activeFutureId}
-        highlightedNoradId={highlightedNoradId}
-        hoverFutureId={hoverFutureId}
-        activeSatellite={activeSatellite}
-        activeFutureSatellite={activeFutureSatellite}
-        activeTle={activeTle}
-        activeTelemetry={activeTelemetry}
-        onSelectNoradId={selectNoradId}
-        onSelectFutureId={selectFutureId}
-        onHoverNoradId={setHoverNoradId}
-        onHoverFutureId={setHoverFutureId}
-        onToggleVisibility={toggleVisibility}
-        onMobileReadingModeChange={handleMobileReadingModeChange}
-        loading={loading}
-        error={error}
-      />
+      <div className="satellite-shell max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:z-20 sm:contents">
+        <SiteFooter />
+        <SatellitePanel
+          satellites={SATELLITES}
+          futureSatellites={FUTURE_SATELLITES}
+          availableNoradIds={availableNoradIds}
+          hiddenNoradIds={hiddenNoradIds}
+          activeNoradId={activeNoradId}
+          activeFutureId={activeFutureId}
+          highlightedNoradId={highlightedNoradId}
+          hoverFutureId={hoverFutureId}
+          activeSatellite={activeSatellite}
+          activeFutureSatellite={activeFutureSatellite}
+          activeTle={activeTle}
+          activeTelemetry={activeTelemetry}
+          onSelectNoradId={selectNoradId}
+          onSelectFutureId={selectFutureId}
+          onHoverNoradId={setHoverNoradId}
+          onHoverFutureId={setHoverFutureId}
+          onToggleVisibility={toggleVisibility}
+          onMobileReadingModeChange={handleMobileReadingModeChange}
+          loading={loading}
+          error={error}
+        />
+      </div>
       <div className="absolute inset-0">
         {tles.length > 0 ? (
           <GlobeScene
