@@ -16,6 +16,7 @@ const MARKER_GEOMETRY_DIAMETER = 1;
 interface SatelliteMarkerProps {
   noradId: number;
   satrec: SatRec;
+  tleLine2: string;
   color: string;
   isHighlighted: boolean;
   isActive: boolean;
@@ -28,6 +29,7 @@ interface SatelliteMarkerProps {
 export function SatelliteMarker({
   noradId,
   satrec,
+  tleLine2,
   color,
   isHighlighted,
   isActive,
@@ -70,7 +72,7 @@ export function SatelliteMarker({
     }
 
     if (now - lastUpdateRef.current > 0.1) {
-      const telemetry = getTelemetry(satrec, date);
+      const telemetry = getTelemetry(satrec, tleLine2, date);
       if (telemetry) {
         onTelemetryUpdate(noradId, telemetry);
         lastUpdateRef.current = now;

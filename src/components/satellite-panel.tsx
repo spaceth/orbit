@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
   FutureSatelliteRecord,
@@ -11,6 +11,12 @@ import type {
 
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { MOBILE_MEDIA_QUERY } from "@/lib/mobile-layout";
+import {
+  SATELLITE_SORT_OPTIONS,
+  sortFutureSatellites,
+  sortSatellites,
+  type SatelliteSortKey,
+} from "@/lib/satellite-sort";
 
 import { OperationCounter } from "./operation-counter";
 import { VisibilityIcon } from "./visibility-icon";
@@ -36,11 +42,6 @@ interface SatellitePanelProps {
   onMobileReadingModeChange: (readingMode: boolean) => void;
   loading: boolean;
   error: string | null;
-}
-
-function formatCoord(value: number, positive: string, negative: string): string {
-  const suffix = value >= 0 ? positive : negative;
-  return `${Math.abs(value).toFixed(2)}° ${suffix}`;
 }
 
 function formatTleAge(date: string): string {
@@ -109,6 +110,16 @@ export function SatellitePanel({
   const detailRef = useRef<HTMLDivElement>(null);
   const [readingMode, setReadingMode] = useState(false);
   const [upcomingExpanded, setUpcomingExpanded] = useState(false);
+  const [sortBy, setSortBy] = useState<SatelliteSortKey>("alphabet");
+
+  const sortedSatellites = useMemo(
+    () => sortSatellites(satellites, sortBy),
+    [satellites, sortBy],
+  );
+  const sortedFutureSatellites = useMemo(
+    () => sortFutureSatellites(futureSatellites, sortBy),
+    [futureSatellites, sortBy],
+  );
 
   const hasDetail =
     !loading &&
@@ -162,8 +173,34 @@ export function SatellitePanel({
         In Orbit
       </p>
 
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <p className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-muted">Sort by</p>
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Sort satellites">
+          {SATELLITE_SORT_OPTIONS.map((option) => {
+            const isActive = sortBy === option.value;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => setSortBy(option.value)}
+                className={[
+                  "px-2 py-0.5 text-[10px] transition-colors",
+                  isActive
+                    ? "bg-surface-active font-medium text-foreground"
+                    : "text-muted hover:text-foreground",
+                ].join(" ")}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="mt-4 space-y-1">
-        {satellites.map((satellite) => {
+        {sortedSatellites.map((satellite) => {
           const isAvailable = availableSet.has(satellite.noradId);
           const isActive = activeNoradId !== null && satellite.noradId === activeNoradId;
           const isHighlighted =
@@ -239,7 +276,7 @@ export function SatellitePanel({
           </button>
           {upcomingExpanded ? (
             <div className="mt-2 space-y-1">
-              {futureSatellites.map((satellite) => {
+              {sortedFutureSatellites.map((satellite) => {
                 const isActive = activeFutureId === satellite.id;
                 const isHighlighted = hoverFutureId === satellite.id;
 
@@ -313,12 +350,7 @@ export function SatellitePanel({
               {activeSatellite.launchDate ? (
                 <OperationCounter launchDate={activeSatellite.launchDate} />
               ) : null}
-              <p className="mt-1 text-sm text-muted">
-                {activeSatellite.purpose}
-                {activeSatellite.launchDate
-                  ? ` · Launched ${formatLaunchDate(activeSatellite.launchDate)}`
-                  : null}
-              </p>
+              <p className="mt-1 text-sm text-muted">{activeSatellite.purpose}</p>
               <p className="mt-1 text-sm text-muted">
                 NORAD {activeTle.noradId} · TLE {formatTleAge(activeTle.date)}
               </p>
@@ -332,15 +364,15 @@ export function SatellitePanel({
               {activeTelemetry ? (
                 <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                   <div>
-                    <dt className="text-muted">Latitude</dt>
+                    <dt className="text-muted">Apogee</dt>
                     <dd className="mt-0.5 font-medium tabular-nums text-foreground">
-                      {formatCoord(activeTelemetry.latitude, "N", "S")}
+                      {activeTelemetry.apogeeKm.toFixed(1)} km
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted">Longitude</dt>
+                    <dt className="text-muted">Perigee</dt>
                     <dd className="mt-0.5 font-medium tabular-nums text-foreground">
-                      {formatCoord(activeTelemetry.longitude, "E", "W")}
+                      {activeTelemetry.perigeeKm.toFixed(1)} km
                     </dd>
                   </div>
                   <div>
@@ -355,6 +387,22 @@ export function SatellitePanel({
                       {activeTelemetry.velocityKmS.toFixed(2)} km/s
                     </dd>
                   </div>
+                  {activeSatellite.launchDate ? (
+                    <div>
+                      <dt className="text-muted">Launch date</dt>
+                      <dd className="mt-0.5 font-medium tabular-nums text-foreground">
+                        {formatLaunchDate(activeSatellite.launchDate)}
+                      </dd>
+                    </div>
+                  ) : null}
+                  {activeSatellite.launchVehicle ? (
+                    <div>
+                      <dt className="text-muted">Launch vehicle</dt>
+                      <dd className="mt-0.5 font-medium text-foreground">
+                        {activeSatellite.launchVehicle}
+                      </dd>
+                    </div>
+                  ) : null}
                 </dl>
               ) : (
                 <p className="mt-5 text-sm text-muted">Computing position…</p>

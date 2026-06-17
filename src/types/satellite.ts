@@ -7,8 +7,8 @@ export interface TleData {
 }
 
 export interface SatelliteTelemetry {
-  latitude: number;
-  longitude: number;
+  apogeeKm: number;
+  perigeeKm: number;
   altitudeKm: number;
   velocityKmS: number;
 }
@@ -28,6 +28,7 @@ export interface SatelliteRecord {
   purpose: SatellitePurpose;
   description?: string;
   launchDate?: string;
+  launchVehicle?: string;
   operator?: string;
   manufacturer?: string;
 }

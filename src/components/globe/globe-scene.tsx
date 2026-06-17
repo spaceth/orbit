@@ -43,6 +43,7 @@ function SceneContent({
       tles.map((tle) => ({
         noradId: tle.noradId,
         satrec: parseTle(tle),
+        tleLine2: tle.line2,
       })),
     [tles],
   );
@@ -78,6 +79,7 @@ function SceneContent({
             <SatelliteMarker
               noradId={satellite.noradId}
               satrec={satellite.satrec}
+              tleLine2={satellite.tleLine2}
               color={themeColors.marker}
               isHighlighted={isHighlighted}
               isActive={isActive}

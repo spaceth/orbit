@@ -10,6 +10,8 @@ import { Vector3 } from "three";
 
 import type { SatelliteTelemetry, TleData } from "@/types/satellite";
 
+import { getOrbitalAltitudesFromTle } from "./tle";
+
 export type { SatRec };
 
 const EARTH_RADIUS_KM = 6371;
@@ -34,7 +36,7 @@ function getOrbitalPeriodMs(satrec: SatRec): number {
   return periodMinutes * 60 * 1000;
 }
 
-export function getTelemetry(satrec: SatRec, date: Date): SatelliteTelemetry | null {
+export function getTelemetry(satrec: SatRec, tleLine2: string, date: Date): SatelliteTelemetry | null {
   const result = propagate(satrec, date);
   if (
     !result ||
@@ -52,10 +54,11 @@ export function getTelemetry(satrec: SatRec, date: Date): SatelliteTelemetry | n
   const velocityKmS = Math.sqrt(
     velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z,
   );
+  const { apogeeKm, perigeeKm } = getOrbitalAltitudesFromTle(tleLine2);
 
   return {
-    latitude: (geodetic.latitude * 180) / Math.PI,
-    longitude: (geodetic.longitude * 180) / Math.PI,
+    apogeeKm,
+    perigeeKm,
     altitudeKm: geodetic.height,
     velocityKmS,
   };
