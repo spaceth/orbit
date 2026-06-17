@@ -40,16 +40,7 @@ export const FUTURE_SATELLITES = [
     purpose: "Communication",
     description:
       "Planned communications satellite to expand broadband and broadcast services across the Asia-Pacific region.",
-    launchInfo: "2027)",
-    operator: "Thaicom",
-  },
-  {
-    id: "cusat-1",
-    name: "CUSAT-1",
-    purpose: "Education",
-    description:
-      "CUSAT-1 is a Thai CubeSat developed by Chulalongkorn University. It will test new technologies for sustainable environment and water management.",
     launchInfo: "2027",
-    operator: "Chulalongkorn University",
+    operator: "Thaicom",
   }
 ] as const satisfies readonly FutureSatelliteRecord[];
