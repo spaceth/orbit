@@ -68,12 +68,28 @@ html.dark {
 body {
   min-height: 100dvh;
   min-height: -webkit-fill-available;
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
   background-color: #ffffff;
   color: var(--foreground);
   font-family: var(--font-sans);
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@media (max-width: 640px) {
+  body::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 25;
+    height: env(safe-area-inset-bottom, 0px);
+    background-color: #ffffff;
+    pointer-events: none;
+  }
+
+  html.dark body::after {
+    background-color: #000000;
+  }
 }
 
 html.dark body {
