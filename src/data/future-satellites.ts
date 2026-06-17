@@ -14,7 +14,7 @@ export const FUTURE_SATELLITES = [
     description:
       "TSC-1 is a technology demonstration satellite developed by National Astronomical Research Institute of Thailand. It will test new technologies for satellite communication, navigation, and Earth observation.",
     launchInfo: "2027",
-    operator: "GISTDA",
+    operator: "NARIT",
   },
   {
     id: "theos-3",
@@ -32,7 +32,7 @@ export const FUTURE_SATELLITES = [
     description:
       "KnackSat-3 is a Thai CubeSat developed by King Mongkut’s University of Technology North Bangkok. It will test new technologies for satellite communication, navigation, and Earth observation.",
     launchInfo: "2027",
-    operator: "GISTDA",
+    operator: "KMNTNB",
   },
   {
     id: "thaicom-9",
@@ -43,4 +43,13 @@ export const FUTURE_SATELLITES = [
     launchInfo: "2027)",
     operator: "Thaicom",
   },
+  {
+    id: "cusat-1",
+    name: "CUSAT-1",
+    purpose: "Education",
+    description:
+      "CUSAT-1 is a Thai CubeSat developed by Chulalongkorn University. It will test new technologies for sustainable environment and water management.",
+    launchInfo: "2027",
+    operator: "Chulalongkorn University",
+  }
 ] as const satisfies readonly FutureSatelliteRecord[];

@@ -216,23 +216,30 @@ export function SatellitePanel({
               const isHighlighted = hoverFutureId === satellite.id;
 
               return (
-                <button
+                <div
                   key={satellite.id}
-                  type="button"
-                  onClick={() => onSelectFutureId(satellite.id)}
-                  onMouseEnter={() => onHoverFutureId(satellite.id)}
-                  onMouseLeave={() => onHoverFutureId(null)}
                   className={[
-                    "flex w-full items-center justify-between px-2 py-1 text-left text-sm transition-colors",
+                    "flex items-center transition-colors",
                     isActive ? "bg-surface-active" : isHighlighted ? "bg-surface-hover" : "",
                   ].join(" ")}
                 >
-                  <span className="font-medium text-foreground">
-                    {satellite.name}
-                    <span className="ml-1 font-normal text-muted opacity-70">Upcoming</span>
-                  </span>
-                  <span className="ml-2 shrink-0 text-xs text-muted">{satellite.purpose}</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => onSelectFutureId(satellite.id)}
+                    onMouseEnter={() => onHoverFutureId(satellite.id)}
+                    onMouseLeave={() => onHoverFutureId(null)}
+                    className="flex min-w-0 flex-1 items-center justify-between px-2 py-1 text-left text-sm"
+                  >
+                    <span className="font-medium text-foreground">
+                      {satellite.name}
+                      <span className="ml-1 font-normal text-muted opacity-70">
+                        {satellite.launchInfo}
+                      </span>
+                    </span>
+                    <span className="ml-2 shrink-0 text-xs text-muted">{satellite.purpose}</span>
+                  </button>
+                  <span className="mr-1 h-6 w-6 shrink-0" aria-hidden />
+                </div>
               );
             })}
           </div>

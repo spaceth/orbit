@@ -5,30 +5,26 @@ import { useEffect, useState } from "react";
 
 function SunIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+    <svg className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 2.25a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75ZM7.5 12a4.5 4.5 0 1 0 9 0 4.5 4.5 0 0 0-9 0ZM18.894 6.166a.75.75 0 0 0-1.06-1.06l-1.591 1.59a.75.75 0 1 0 1.06 1.061l1.591-1.59ZM21.75 12a.75.75 0 0 1-.75.75h-2.25a.75.75 0 0 1 0-1.5H21a.75.75 0 0 1 .75.75ZM17.834 18.894a.75.75 0 0 0 1.06-1.06l-1.59-1.591a.75.75 0 1 0-1.061 1.06l1.59 1.591ZM12 18a.75.75 0 0 1 .75.75V21a.75.75 0 0 1-1.5 0v-2.25A.75.75 0 0 1 12 18ZM7.758 17.303a.75.75 0 0 0-1.061-1.06l-1.591 1.59a.75.75 0 1 0 1.06 1.061l1.591-1.59ZM6 12a.75.75 0 0 1-.75.75H3a.75.75 0 0 1 0-1.5h2.25A.75.75 0 0 1 6 12ZM6.697 7.757a.75.75 0 1 0 1.06-1.06l-1.59-1.591a.75.75 0 1 0-1.061 1.06l1.59 1.591Z" />
     </svg>
   );
 }
 
 function MoonIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path
-        d="M21 14.5A8.5 8.5 0 0 1 9.5 3 7 7 0 1 0 21 14.5Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
+        fillRule="evenodd"
+        d="M9.528 1.718a.75.75 0 0 1 .162.819A8.97 8.97 0 0 0 9 6a9 9 0 0 0 9 9 8.97 8.97 0 0 0 3.463-.69.75.75 0 0 1 .981.98 10.503 10.503 0 0 1-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 0 1 .818.162Z"
+        clipRule="evenodd"
       />
     </svg>
   );
 }
+
+const toggleClassName =
+  "fixed top-0 right-5 z-30 flex items-start pt-5 text-foreground transition-opacity hover:opacity-60";
 
 export function ThemeToggle() {
   const { resolvedTheme, theme, setTheme } = useTheme();
@@ -37,7 +33,7 @@ export function ThemeToggle() {
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
-    return <div className="fixed top-5 right-5 z-30 h-8 w-8" aria-hidden />;
+    return <div className={`${toggleClassName} h-4 w-4 sm:h-5 sm:w-5`} aria-hidden />;
   }
 
   const isDark = resolvedTheme === "dark";
@@ -58,7 +54,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={handleToggle}
-      className="fixed top-5 right-5 z-30 flex h-8 w-8 items-center justify-center text-foreground transition-opacity hover:opacity-60"
+      className={toggleClassName}
       aria-label={
         theme === "system"
           ? `Using system appearance (${isDark ? "dark" : "light"}). Switch to ${isDark ? "light" : "dark"} mode.`
