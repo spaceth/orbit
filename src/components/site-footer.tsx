@@ -12,12 +12,14 @@ export function SiteFooter() {
       <p className="pointer-events-none min-w-0 uppercase tracking-[0.14em] max-sm:normal-case max-sm:tracking-normal">
         ©{year} SPACETH.CO. ALL RIGHTS RESERVED.
       </p>
-      <button
-        type="button"
+      <a
+        href="https://github.com/spaceth/orbit"
+        target="_blank"
+        rel="noopener noreferrer"
         className="pointer-events-auto shrink-0 normal-case tracking-normal transition-opacity hover:text-foreground hover:opacity-80"
       >
         How&apos;s this website works?
-      </button>
+      </a>
     </footer>
   );
 }
