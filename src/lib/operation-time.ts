@@ -1,3 +1,5 @@
+import type { Locale, UiText } from "@/lib/localization";
+
 export interface OperationDuration {
   years: number;
   months: number;
@@ -30,15 +32,34 @@ export function getOperationDuration(launchDate: string, now = new Date()): Oper
   return { years, months, days };
 }
 
-function plural(value: number, unit: string): string {
-  return `${value} ${unit}${value === 1 ? "" : "s"}`;
+function plural(value: number, singular: string, pluralForm: string): string {
+  return `${value} ${value === 1 ? singular : pluralForm}`;
 }
 
-export function formatOperationDuration(duration: OperationDuration): string {
+export function formatOperationDuration(duration: OperationDuration, ui: UiText): string {
   const parts = [
-    plural(duration.years, "year"),
-    plural(duration.months, "month"),
-    plural(duration.days, "day"),
+    plural(duration.years, ui.year, ui.years),
+    plural(duration.months, ui.month, ui.months),
+    plural(duration.days, ui.day, ui.days),
   ];
-  return `${parts.join(", ")} in space`;
+  return `${parts.join(", ")} ${ui.inSpace}`;
+}
+
+export function formatLaunchDate(date: string, locale: Locale): string {
+  const localeTag = locale === "th" ? "th-TH" : "en-US";
+  return new Date(date).toLocaleDateString(localeTag, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+export function formatTleAge(date: string, ui: UiText): string {
+  const epoch = new Date(date);
+  const hours = Math.max(0, (Date.now() - epoch.getTime()) / (1000 * 60 * 60));
+  if (hours < 24) {
+    return ui.tleAgeHours.replace("{hours}", hours.toFixed(1));
+  }
+  return ui.tleAgeDays.replace("{days}", (hours / 24).toFixed(1));
 }

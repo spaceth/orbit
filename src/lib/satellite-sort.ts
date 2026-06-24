@@ -2,11 +2,11 @@ import type { FutureSatelliteRecord, SatelliteRecord } from "@/types/satellite";
 
 export type SatelliteSortKey = "launchDate" | "type" | "alphabet" | "operator";
 
-export const SATELLITE_SORT_OPTIONS: { value: SatelliteSortKey; label: string }[] = [
-  { value: "alphabet", label: "Alphabet" },
-  { value: "launchDate", label: "Launch date" },
-  { value: "type", label: "Type" },
-  { value: "operator", label: "Operator" },
+export const SATELLITE_SORT_KEYS: readonly SatelliteSortKey[] = [
+  "alphabet",
+  "launchDate",
+  "type",
+  "operator",
 ];
 
 function compareNames(a: string, b: string): number {

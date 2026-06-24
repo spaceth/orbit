@@ -6,19 +6,22 @@ import { useEffect, useMemo, useState } from "react";
 import { buildLandMapTexture, type GeoJsonFeatureCollection } from "@/lib/geo";
 import type { ThemeColors } from "@/lib/theme";
 
+const EARTH_GEOJSON_URL = "/data/countries-50m.json";
+const EARTH_MAP_SIZE = { width: 16384, height: 8192 } as const;
+
 interface EarthProps {
   colors: ThemeColors;
-  onClick?: () => void;
+  onDoubleClick?: () => void;
 }
 
-export function Earth({ colors, onClick }: EarthProps) {
+export function Earth({ colors, onDoubleClick }: EarthProps) {
   const [geoData, setGeoData] = useState<GeoJsonFeatureCollection | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadLand() {
-      const response = await fetch("/data/countries-110m.json");
+      const response = await fetch(EARTH_GEOJSON_URL);
       if (!response.ok) {
         return;
       }
@@ -40,10 +43,14 @@ export function Earth({ colors, onClick }: EarthProps) {
     if (!geoData) {
       return null;
     }
-    return buildLandMapTexture(geoData, {
-      ocean: colors.earthOcean,
-      land: colors.earthLand,
-    });
+    return buildLandMapTexture(
+      geoData,
+      {
+        ocean: colors.earthOcean,
+        land: colors.earthLand,
+      },
+      EARTH_MAP_SIZE,
+    );
   }, [geoData, colors.earthOcean, colors.earthLand]);
 
   useEffect(() => {
@@ -54,12 +61,12 @@ export function Earth({ colors, onClick }: EarthProps) {
 
   return (
     <mesh
-      onClick={(event: ThreeEvent<MouseEvent>) => {
+      onDoubleClick={(event: ThreeEvent<MouseEvent>) => {
         event.stopPropagation();
-        onClick?.();
+        onDoubleClick?.();
       }}
     >
-      <sphereGeometry args={[1, 128, 128]} />
+      <sphereGeometry args={[1, 256, 256]} />
       <meshBasicMaterial
         key={mapTexture?.uuid ?? colors.earthOcean}
         map={mapTexture ?? undefined}

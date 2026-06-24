@@ -3,10 +3,11 @@
 import dynamic from "next/dynamic";
 import { useCallback, useState } from "react";
 
+import { AppToggles } from "@/components/app-toggles";
+import { GlobeLoading } from "@/components/globe-loading";
 import { SatellitePanel } from "@/components/satellite-panel";
 import { SiteFooter } from "@/components/site-footer";
 import { SpaceTHLogo } from "@/components/spaceth-logo";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { useSatellites } from "@/hooks/use-satellites";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { FUTURE_SATELLITES } from "@/lib/future-satellites";
@@ -16,11 +17,7 @@ const GlobeScene = dynamic(
   () => import("@/components/globe/globe-scene").then((mod) => mod.GlobeScene),
   {
     ssr: false,
-    loading: () => (
-      <div className="flex h-full w-full items-center justify-center text-sm text-muted">
-        Loading globe…
-      </div>
-    ),
+    loading: () => <GlobeLoading />,
   },
 );
 
@@ -39,7 +36,7 @@ export function OrbitViewer() {
   const {
     tles,
     loading,
-    error,
+    loadError,
     activeNoradId,
     activeFutureId,
     highlightedNoradId,
@@ -75,6 +72,11 @@ export function OrbitViewer() {
     [selectFutureId],
   );
 
+  const handleEarthDoubleClick = useCallback(() => {
+    deselect();
+    focusEarth();
+  }, [deselect, focusEarth]);
+
   const handleDeselect = useCallback(() => {
     setEarthFocused(false);
     deselect();
@@ -83,7 +85,7 @@ export function OrbitViewer() {
   return (
     <div className="relative h-full min-h-dvh w-full overflow-hidden bg-background text-foreground transition-colors">
       <SpaceTHLogo />
-      <ThemeToggle />
+      <AppToggles />
       <div className="satellite-shell max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:z-20 max-sm:bg-white max-sm:pb-[env(safe-area-inset-bottom)] max-sm:dark:bg-black sm:contents">
         <SiteFooter />
         <SatellitePanel
@@ -106,7 +108,7 @@ export function OrbitViewer() {
           onToggleVisibility={toggleVisibility}
           onMobileReadingModeChange={handleMobileReadingModeChange}
           loading={loading}
-          error={error}
+          loadError={loadError}
         />
       </div>
       <div className="absolute inset-0">
@@ -120,7 +122,7 @@ export function OrbitViewer() {
             mobileReadingMode={mobileReadingMode}
             onSelectNoradId={handleSelectNoradId}
             onHoverNoradId={setHoverNoradId}
-            onFocusEarth={focusEarth}
+            onEarthDoubleClick={handleEarthDoubleClick}
             onDeselect={handleDeselect}
             earthFocused={earthFocused}
             earthFocusRequest={earthFocusRequest}

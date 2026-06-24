@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useLocale } from "@/components/locale-provider";
+import {
+  getFutureSatelliteDescription,
+  getSatelliteDescription,
+} from "@/data/satellite-i18n";
 import type {
   FutureSatelliteRecord,
   SatelliteRecord,
@@ -10,9 +15,11 @@ import type {
 } from "@/types/satellite";
 
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { formatLaunchDate, formatTleAge } from "@/lib/operation-time";
 import { MOBILE_MEDIA_QUERY } from "@/lib/mobile-layout";
+import { formatTemplate, getPurposeLabel } from "@/lib/localization";
 import {
-  SATELLITE_SORT_OPTIONS,
+  SATELLITE_SORT_KEYS,
   sortFutureSatellites,
   sortSatellites,
   type SatelliteSortKey,
@@ -41,25 +48,7 @@ interface SatellitePanelProps {
   onToggleVisibility: (noradId: number) => void;
   onMobileReadingModeChange: (readingMode: boolean) => void;
   loading: boolean;
-  error: string | null;
-}
-
-function formatTleAge(date: string): string {
-  const epoch = new Date(date);
-  const hours = Math.max(0, (Date.now() - epoch.getTime()) / (1000 * 60 * 60));
-  if (hours < 24) {
-    return `${hours.toFixed(1)}h ago`;
-  }
-  return `${(hours / 24).toFixed(1)}d ago`;
-}
-
-function formatLaunchDate(date: string): string {
-  return new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  });
+  loadError: boolean;
 }
 
 function ChevronIcon({ expanded }: { expanded: boolean }) {
@@ -102,8 +91,9 @@ export function SatellitePanel({
   onToggleVisibility,
   onMobileReadingModeChange,
   loading,
-  error,
+  loadError,
 }: SatellitePanelProps) {
+  const { locale, ui } = useLocale();
   const availableSet = new Set(availableNoradIds);
   const isMobile = useMediaQuery(MOBILE_MEDIA_QUERY);
   const panelRef = useRef<HTMLElement>(null);
@@ -121,9 +111,16 @@ export function SatellitePanel({
     [futureSatellites, sortBy],
   );
 
+  const sortLabels: Record<SatelliteSortKey, string> = {
+    alphabet: ui.sortAlphabet,
+    launchDate: ui.sortLaunchDate,
+    type: ui.sortType,
+    operator: ui.sortOperator,
+  };
+
   const hasDetail =
     !loading &&
-    !error &&
+    !loadError &&
     (activeFutureSatellite !== null || (activeSatellite !== null && activeTle !== null));
 
   const updateReadingMode = useCallback(
@@ -170,21 +167,21 @@ export function SatellitePanel({
       ].join(" ")}
     >
       <p className="text-xs font-medium uppercase tracking-[0.14em] text-panel-heading">
-        In Orbit
+        {ui.inOrbit}
       </p>
 
       <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-        <p className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-muted">Sort by</p>
-        <div className="flex flex-wrap gap-1" role="group" aria-label="Sort satellites">
-          {SATELLITE_SORT_OPTIONS.map((option) => {
-            const isActive = sortBy === option.value;
+        <p className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-muted">{ui.sortBy}</p>
+        <div className="flex flex-wrap gap-1" role="group" aria-label={ui.sortSatellites}>
+          {SATELLITE_SORT_KEYS.map((value) => {
+            const isActive = sortBy === value;
 
             return (
               <button
-                key={option.value}
+                key={value}
                 type="button"
                 aria-pressed={isActive}
-                onClick={() => setSortBy(option.value)}
+                onClick={() => setSortBy(value)}
                 className={[
                   "px-2 py-0.5 text-[10px] transition-colors",
                   isActive
@@ -192,7 +189,7 @@ export function SatellitePanel({
                     : "text-muted hover:text-foreground",
                 ].join(" ")}
               >
-                {option.label}
+                {sortLabels[value]}
               </button>
             );
           })}
@@ -243,17 +240,23 @@ export function SatellitePanel({
                 <span className="font-medium text-foreground">
                   {satellite.name}
                   {!isAvailable ? (
-                    <span className="ml-1 font-normal text-muted opacity-70">Unavailable</span>
+                    <span className="ml-1 font-normal text-muted opacity-70">{ui.unavailable}</span>
                   ) : null}
                 </span>
-                <span className="ml-2 shrink-0 text-xs text-muted">{satellite.purpose}</span>
+                <span className="ml-2 shrink-0 text-xs text-muted">
+                  {getPurposeLabel(locale, satellite.purpose)}
+                </span>
               </button>
               {isAvailable ? (
                 <button
                   type="button"
                   onClick={() => onToggleVisibility(satellite.noradId)}
                   className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center text-muted transition-colors hover:text-foreground"
-                  aria-label={isVisible ? `Hide ${satellite.name}` : `Show ${satellite.name}`}
+                  aria-label={
+                    isVisible
+                      ? formatTemplate(ui.hideSatellite, { name: satellite.name })
+                      : formatTemplate(ui.showSatellite, { name: satellite.name })
+                  }
                 >
                   <VisibilityIcon visible={isVisible} />
                 </button>
@@ -272,7 +275,7 @@ export function SatellitePanel({
             aria-expanded={upcomingExpanded}
           >
             <ChevronIcon expanded={upcomingExpanded} />
-            Upcoming
+            {ui.upcoming}
           </button>
           {upcomingExpanded ? (
             <div className="mt-2 space-y-1">
@@ -301,7 +304,9 @@ export function SatellitePanel({
                           {satellite.launchInfo}
                         </span>
                       </span>
-                      <span className="ml-2 shrink-0 text-xs text-muted">{satellite.purpose}</span>
+                      <span className="ml-2 shrink-0 text-xs text-muted">
+                        {getPurposeLabel(locale, satellite.purpose)}
+                      </span>
                     </button>
                     <span className="mr-1 h-6 w-6 shrink-0" aria-hidden />
                   </div>
@@ -319,7 +324,7 @@ export function SatellitePanel({
         </div>
       )}
 
-      {error && <p className="mt-4 text-sm text-error">{error}</p>}
+      {loadError && <p className="mt-4 text-sm text-error">{ui.tleLoadError}</p>}
 
       {hasDetail ? (
         <div ref={detailRef}>
@@ -328,7 +333,9 @@ export function SatellitePanel({
               <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
                 {activeFutureSatellite.name}
               </h1>
-              <p className="mt-1 text-sm text-muted">{activeFutureSatellite.purpose}</p>
+              <p className="mt-1 text-sm text-muted">
+                {getPurposeLabel(locale, activeFutureSatellite.purpose)}
+              </p>
               <p className="mt-1 text-sm text-muted">
                 {activeFutureSatellite.launchInfo}
                 {activeFutureSatellite.operator
@@ -336,9 +343,9 @@ export function SatellitePanel({
                   : null}
               </p>
               <p className="mt-3 text-sm leading-relaxed text-muted">
-                {activeFutureSatellite.description}
+                {getFutureSatelliteDescription(locale, activeFutureSatellite.id)}
               </p>
-              <p className="mt-5 text-sm text-muted">Not yet in orbit — tracking unavailable.</p>
+              <p className="mt-5 text-sm text-muted">{ui.notYetInOrbit}</p>
             </>
           ) : null}
 
@@ -350,54 +357,59 @@ export function SatellitePanel({
               {activeSatellite.launchDate ? (
                 <OperationCounter launchDate={activeSatellite.launchDate} />
               ) : null}
-              <p className="mt-1 text-sm text-muted">{activeSatellite.purpose}</p>
               <p className="mt-1 text-sm text-muted">
-                NORAD {activeTle.noradId} · TLE {formatTleAge(activeTle.date)}
+                {getPurposeLabel(locale, activeSatellite.purpose)}
+              </p>
+              <p className="mt-1 text-sm text-muted">
+                {formatTemplate(ui.noradTle, {
+                  noradId: activeTle.noradId,
+                  age: formatTleAge(activeTle.date, ui),
+                })}
               </p>
 
-              {activeSatellite.description ? (
+              {getSatelliteDescription(locale, activeSatellite.noradId) ? (
                 <p className="mt-3 text-sm leading-relaxed text-muted">
-                  {activeSatellite.description}
+                  {getSatelliteDescription(locale, activeSatellite.noradId)}
                 </p>
               ) : null}
 
               {activeTelemetry ? (
                 <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                   <div>
-                    <dt className="text-muted">Apogee</dt>
+                    <dt className="text-muted">{ui.apogee}</dt>
                     <dd className="mt-0.5 font-medium tabular-nums text-foreground">
                       {activeTelemetry.apogeeKm.toFixed(1)} km
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted">Perigee</dt>
+                    <dt className="text-muted">{ui.perigee}</dt>
                     <dd className="mt-0.5 font-medium tabular-nums text-foreground">
                       {activeTelemetry.perigeeKm.toFixed(1)} km
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted">Altitude</dt>
+                    <dt className="text-muted">{ui.altitude}</dt>
                     <dd className="mt-0.5 font-medium tabular-nums text-foreground">
                       {activeTelemetry.altitudeKm.toFixed(1)} km
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted">Velocity</dt>
+                    <dt className="text-muted">{ui.velocity}</dt>
                     <dd className="mt-0.5 font-medium tabular-nums text-foreground">
                       {activeTelemetry.velocityKmS.toFixed(2)} km/s
                     </dd>
                   </div>
                   {activeSatellite.launchDate ? (
                     <div>
-                      <dt className="text-muted">Launch date</dt>
+                      <dt className="text-muted">{ui.launchDate}</dt>
                       <dd className="mt-0.5 font-medium tabular-nums text-foreground">
-                        {formatLaunchDate(activeSatellite.launchDate)}
+                        {formatLaunchDate(activeSatellite.launchDate, locale)}
                       </dd>
                     </div>
                   ) : null}
                   {activeSatellite.launchVehicle ? (
                     <div>
-                      <dt className="text-muted">Launch vehicle</dt>
+                      <dt className="text-muted">{ui.launchVehicle}</dt>
                       <dd className="mt-0.5 font-medium text-foreground">
                         {activeSatellite.launchVehicle}
                       </dd>
@@ -405,7 +417,7 @@ export function SatellitePanel({
                   ) : null}
                 </dl>
               ) : (
-                <p className="mt-5 text-sm text-muted">Computing position…</p>
+                <p className="mt-5 text-sm text-muted">{ui.computingPosition}</p>
               )}
             </>
           ) : null}

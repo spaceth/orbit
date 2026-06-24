@@ -24,8 +24,12 @@ export interface EarthMapColors {
   land: string;
 }
 
-const MAP_WIDTH = 8192;
-const MAP_HEIGHT = 4096;
+export interface EarthMapSize {
+  width: number;
+  height: number;
+}
+
+const DEFAULT_MAP_SIZE: EarthMapSize = { width: 16384, height: 8192 };
 
 function lonToX(lon: number, width: number): number {
   return ((lon + 180) / 360) * width;
@@ -74,10 +78,11 @@ function drawPolygon(
 export function buildLandMapTexture(
   data: GeoJsonFeatureCollection,
   colors: EarthMapColors,
+  size: EarthMapSize = DEFAULT_MAP_SIZE,
 ): CanvasTexture {
   const canvas = document.createElement("canvas");
-  canvas.width = MAP_WIDTH;
-  canvas.height = MAP_HEIGHT;
+  canvas.width = size.width;
+  canvas.height = size.height;
 
   const context = canvas.getContext("2d", { alpha: false });
   if (!context) {

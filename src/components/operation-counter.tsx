@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { useLocale } from "@/components/locale-provider";
 import {
   formatOperationDuration,
   getOperationDuration,
@@ -13,6 +14,7 @@ interface OperationCounterProps {
 }
 
 export function OperationCounter({ launchDate }: OperationCounterProps) {
+  const { ui } = useLocale();
   const [duration, setDuration] = useState<OperationDuration | null>(() =>
     getOperationDuration(launchDate),
   );
@@ -30,7 +32,7 @@ export function OperationCounter({ launchDate }: OperationCounterProps) {
 
   return (
     <p className="mt-1 text-sm tabular-nums text-panel-heading">
-      {formatOperationDuration(duration)}
+      {formatOperationDuration(duration, ui)}
     </p>
   );
 }

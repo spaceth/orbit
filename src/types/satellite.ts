@@ -38,7 +38,6 @@ export interface FutureSatelliteRecord {
   id: string;
   name: string;
   purpose: SatellitePurpose;
-  description: string;
   launchInfo: string;
   operator?: string;
 }

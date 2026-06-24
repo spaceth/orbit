@@ -3,6 +3,9 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
+import { useLocale } from "@/components/locale-provider";
+import { formatTemplate } from "@/lib/localization";
+
 function SunIcon() {
   return (
     <svg className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -24,10 +27,11 @@ function MoonIcon() {
 }
 
 const toggleClassName =
-  "fixed top-0 right-5 z-30 flex items-start pt-5 text-foreground transition-opacity hover:opacity-60";
+  "flex items-start text-foreground transition-opacity hover:opacity-60";
 
 export function ThemeToggle() {
   const { resolvedTheme, theme, setTheme } = useTheme();
+  const { ui } = useLocale();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -37,6 +41,8 @@ export function ThemeToggle() {
   }
 
   const isDark = resolvedTheme === "dark";
+  const lightLabel = ui.switchToLightMode;
+  const darkLabel = ui.switchToDarkMode;
 
   const handleToggle = () => {
     if (theme === "system") {
@@ -57,10 +63,13 @@ export function ThemeToggle() {
       className={toggleClassName}
       aria-label={
         theme === "system"
-          ? `Using system appearance (${isDark ? "dark" : "light"}). Switch to ${isDark ? "light" : "dark"} mode.`
+          ? formatTemplate(ui.switchThemeFromSystem, {
+              mode: isDark ? ui.themeModeDark : ui.themeModeLight,
+              target: isDark ? ui.themeModeLight : ui.themeModeDark,
+            })
           : isDark
-            ? "Switch to light mode"
-            : "Switch to dark mode"
+            ? lightLabel
+            : darkLabel
       }
     >
       {isDark ? <SunIcon /> : <MoonIcon />}

@@ -22,7 +22,7 @@ interface GlobeSceneProps {
   mobileReadingMode: boolean;
   onSelectNoradId: (noradId: number) => void;
   onHoverNoradId: (noradId: number | null) => void;
-  onFocusEarth: () => void;
+  onEarthDoubleClick: () => void;
   onDeselect: () => void;
   earthFocused: boolean;
   earthFocusRequest: number;
@@ -38,8 +38,7 @@ function SceneContent({
   mobileReadingMode,
   onSelectNoradId,
   onHoverNoradId,
-  onFocusEarth,
-  onDeselect,
+  onEarthDoubleClick,
   earthFocused,
   earthFocusRequest,
   onTelemetryUpdate,
@@ -60,7 +59,7 @@ function SceneContent({
       <ambientLight intensity={0.9} />
       <directionalLight position={[5, 2, 5]} intensity={2} />
       <directionalLight position={[-3, -1, -2]} intensity={0.6} />
-      <Earth colors={themeColors} onClick={onFocusEarth} />
+      <Earth colors={themeColors} onDoubleClick={onEarthDoubleClick} />
 
       {satellites.map((satellite) => {
         if (hiddenNoradIds.has(satellite.noradId)) {
@@ -110,12 +109,18 @@ function SceneContent({
 }
 
 export function GlobeScene(props: GlobeSceneProps) {
+  const handlePointerMissed = (event: MouseEvent) => {
+    if (event.type === "dblclick") {
+      props.onDeselect();
+    }
+  };
+
   return (
     <Canvas
       className="h-full w-full"
       camera={{ position: [0, 0, 2.8], fov: 45 }}
       gl={{ antialias: true, alpha: false }}
-      onPointerMissed={props.onDeselect}
+      onPointerMissed={handlePointerMissed}
     >
       <SceneContent {...props} />
     </Canvas>

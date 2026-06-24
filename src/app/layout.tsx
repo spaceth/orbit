@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { LocaleProvider } from "@/components/locale-provider";
 import { ThemeColorMeta } from "@/components/theme-color-meta";
 import { ThemeProvider } from "@/components/theme-provider";
 import { themeInitScript } from "@/lib/theme-init-script";
@@ -66,8 +67,10 @@ export default function RootLayout({
       <body className="h-full overflow-hidden font-sans">
         <GoogleAnalytics />
         <ThemeProvider>
-          <ThemeColorMeta />
-          {children}
+          <LocaleProvider>
+            <ThemeColorMeta />
+            {children}
+          </LocaleProvider>
         </ThemeProvider>
       </body>
     </html>

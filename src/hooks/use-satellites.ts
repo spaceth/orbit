@@ -15,14 +15,14 @@ export function useSatellites() {
   const [hoverFutureId, setHoverFutureId] = useState<string | null>(null);
   const [hiddenNoradIds, setHiddenNoradIds] = useState<ReadonlySet<number>>(() => new Set());
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadTles() {
       setLoading(true);
-      setError(null);
+      setLoadError(false);
 
       try {
         const results = await Promise.all(
@@ -45,7 +45,7 @@ export function useSatellites() {
         }
       } catch {
         if (!cancelled) {
-          setError("Unable to load TLE data. Please try again later.");
+          setLoadError(true);
         }
       } finally {
         if (!cancelled) {
@@ -127,7 +127,7 @@ export function useSatellites() {
   return {
     tles,
     loading,
-    error,
+    loadError,
     activeNoradId,
     activeFutureId,
     hoverNoradId,
