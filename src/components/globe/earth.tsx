@@ -3,11 +3,15 @@
 import { type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useMemo, useState } from "react";
 
-import { buildLandMapTexture, type GeoJsonFeatureCollection } from "@/lib/geo";
+import {
+  buildLandMapTexture,
+  getEarthMapSize,
+  type EarthMapSize,
+  type GeoJsonFeatureCollection,
+} from "@/lib/geo";
 import type { ThemeColors } from "@/lib/theme";
 
 const EARTH_GEOJSON_URL = "/data/countries-50m.json";
-const EARTH_MAP_SIZE = { width: 16384, height: 8192 } as const;
 
 interface EarthProps {
   colors: ThemeColors;
@@ -16,6 +20,7 @@ interface EarthProps {
 
 export function Earth({ colors, onDoubleClick }: EarthProps) {
   const [geoData, setGeoData] = useState<GeoJsonFeatureCollection | null>(null);
+  const [mapSize] = useState<EarthMapSize>(() => getEarthMapSize());
 
   useEffect(() => {
     let cancelled = false;
@@ -49,15 +54,17 @@ export function Earth({ colors, onDoubleClick }: EarthProps) {
         ocean: colors.earthOcean,
         land: colors.earthLand,
       },
-      EARTH_MAP_SIZE,
+      mapSize,
     );
-  }, [geoData, colors.earthOcean, colors.earthLand]);
+  }, [geoData, colors.earthOcean, colors.earthLand, mapSize]);
 
   useEffect(() => {
     return () => {
       mapTexture?.dispose();
     };
   }, [mapTexture]);
+
+  const sphereSegments = mapSize.width >= 8192 ? 256 : 128;
 
   return (
     <mesh
@@ -66,7 +73,7 @@ export function Earth({ colors, onDoubleClick }: EarthProps) {
         onDoubleClick?.();
       }}
     >
-      <sphereGeometry args={[1, 256, 256]} />
+      <sphereGeometry args={[1, sphereSegments, sphereSegments]} />
       <meshBasicMaterial
         key={mapTexture?.uuid ?? colors.earthOcean}
         map={mapTexture ?? undefined}

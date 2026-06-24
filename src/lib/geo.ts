@@ -29,7 +29,36 @@ export interface EarthMapSize {
   height: number;
 }
 
-const DEFAULT_MAP_SIZE: EarthMapSize = { width: 16384, height: 8192 };
+/** Largest equirectangular bake — desktop GPUs with high texture limits. */
+export const DESKTOP_MAP_SIZE: EarthMapSize = { width: 16384, height: 8192 };
+
+/** Safe fallback for mobile GPUs (iOS Safari is typically capped at 4096). */
+export const MOBILE_MAP_SIZE: EarthMapSize = { width: 4096, height: 2048 };
+
+export function getMaxTextureSize(): number {
+  if (typeof document === "undefined") {
+    return 4096;
+  }
+
+  const canvas = document.createElement("canvas");
+  const gl = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
+  if (!gl) {
+    return 4096;
+  }
+
+  return gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
+}
+
+/** Pick the largest 2:1 map that fits within the device WebGL texture limit. */
+export function getEarthMapSize(maxTextureSize = getMaxTextureSize()): EarthMapSize {
+  if (maxTextureSize >= DESKTOP_MAP_SIZE.width) {
+    return DESKTOP_MAP_SIZE;
+  }
+  if (maxTextureSize >= 8192) {
+    return { width: 8192, height: 4096 };
+  }
+  return MOBILE_MAP_SIZE;
+}
 
 function lonToX(lon: number, width: number): number {
   return ((lon + 180) / 360) * width;
@@ -78,7 +107,7 @@ function drawPolygon(
 export function buildLandMapTexture(
   data: GeoJsonFeatureCollection,
   colors: EarthMapColors,
-  size: EarthMapSize = DEFAULT_MAP_SIZE,
+  size: EarthMapSize = getEarthMapSize(),
 ): CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = size.width;
@@ -113,7 +142,7 @@ export function buildLandMapTexture(
   texture.minFilter = LinearMipmapLinearFilter;
   texture.magFilter = LinearFilter;
   texture.generateMipmaps = true;
-  texture.anisotropy = 16;
+  texture.anisotropy = Math.min(16, getMaxTextureSize() >= 8192 ? 16 : 4);
   texture.needsUpdate = true;
   return texture;
 }
