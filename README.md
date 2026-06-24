@@ -46,6 +46,25 @@ This is done so the API does not become an open proxy that anyone can use to fet
 
 TLE data is cached for about 1 hour. Satellite orbits do not change every second like stock prices, so caching helps the site load faster and avoids unnecessary API calls.
 
+## Fallback TLE
+
+If the live TLE API is unavailable, Orbit falls back to a bundled copy of TLE data stored in the project at `src/data/tle-fallback.json`.
+
+The fallback works at two levels:
+
+1. **Server** — the `/api/tle/[id]` route tries the live API first. If that fails, it returns the bundled TLE for that satellite.
+2. **Browser** — if a request to the API route still fails, the client uses the same bundled data so tracking can continue offline or during outages.
+
+The globe and satellite list keep working with fallback data. An error with a **Try again** button appears only when both the live API and the bundled fallback are unavailable.
+
+To refresh the fallback file from the same API (recommended about once a week):
+
+```bash
+npm run update-tle-fallback
+```
+
+This re-fetches TLEs for every satellite in the project’s registry and updates `src/data/tle-fallback.json`.
+
 ## What powers the 3D view?
 
 The 3D Earth and satellite visualization are built with **Three.js**, through **React Three Fiber**.
