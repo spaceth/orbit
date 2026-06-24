@@ -49,6 +49,7 @@ interface SatellitePanelProps {
   onMobileReadingModeChange: (readingMode: boolean) => void;
   loading: boolean;
   loadError: boolean;
+  onRetryLoadTles: () => void;
 }
 
 function ChevronIcon({ expanded }: { expanded: boolean }) {
@@ -92,6 +93,7 @@ export function SatellitePanel({
   onMobileReadingModeChange,
   loading,
   loadError,
+  onRetryLoadTles,
 }: SatellitePanelProps) {
   const { locale, ui } = useLocale();
   const availableSet = new Set(availableNoradIds);
@@ -324,7 +326,19 @@ export function SatellitePanel({
         </div>
       )}
 
-      {loadError && <p className="mt-4 text-sm text-error">{ui.tleLoadError}</p>}
+      {loadError ? (
+        <div className="mt-4 space-y-2">
+          <p className="text-sm text-error">{ui.tleLoadError}</p>
+          <button
+            type="button"
+            onClick={onRetryLoadTles}
+            disabled={loading}
+            className="text-sm text-foreground underline decoration-muted underline-offset-2 transition-opacity hover:opacity-70 disabled:opacity-50"
+          >
+            {ui.tleRetry}
+          </button>
+        </div>
+      ) : null}
 
       {hasDetail ? (
         <div ref={detailRef}>

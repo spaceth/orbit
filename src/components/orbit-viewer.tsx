@@ -37,6 +37,7 @@ export function OrbitViewer() {
     tles,
     loading,
     loadError,
+    retryLoadTles,
     activeNoradId,
     activeFutureId,
     highlightedNoradId,
@@ -109,26 +110,25 @@ export function OrbitViewer() {
           onMobileReadingModeChange={handleMobileReadingModeChange}
           loading={loading}
           loadError={loadError}
+          onRetryLoadTles={retryLoadTles}
         />
       </div>
       <div className="absolute inset-0">
-        {tles.length > 0 ? (
-          <GlobeScene
-            tles={tles}
-            themeColors={themeColors}
-            hiddenNoradIds={hiddenNoradIds}
-            activeNoradId={activeNoradId}
-            highlightedNoradId={highlightedNoradId}
-            mobileReadingMode={mobileReadingMode}
-            onSelectNoradId={handleSelectNoradId}
-            onHoverNoradId={setHoverNoradId}
-            onEarthDoubleClick={handleEarthDoubleClick}
-            onDeselect={handleDeselect}
-            earthFocused={earthFocused}
-            earthFocusRequest={earthFocusRequest}
-            onTelemetryUpdate={updateTelemetry}
-          />
-        ) : null}
+        <GlobeScene
+          tles={tles}
+          themeColors={themeColors}
+          hiddenNoradIds={hiddenNoradIds}
+          activeNoradId={activeNoradId}
+          highlightedNoradId={highlightedNoradId}
+          mobileReadingMode={mobileReadingMode}
+          onSelectNoradId={handleSelectNoradId}
+          onHoverNoradId={setHoverNoradId}
+          onEarthDoubleClick={handleEarthDoubleClick}
+          onDeselect={handleDeselect}
+          earthFocused={earthFocused}
+          earthFocusRequest={earthFocusRequest}
+          onTelemetryUpdate={updateTelemetry}
+        />
       </div>
     </div>
   );

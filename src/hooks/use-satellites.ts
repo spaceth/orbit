@@ -3,8 +3,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { SATELLITES, getSatelliteByNoradId } from "@/lib/satellites";
+import { getAllFallbackTles, getFallbackTle } from "@/lib/tle-fallback";
 import { getFutureSatelliteById } from "@/lib/future-satellites";
 import type { SatelliteTelemetry, TleData } from "@/types/satellite";
+
+async function fetchTleForSatellite(noradId: number): Promise<TleData | null> {
+  try {
+    const response = await fetch(`/api/tle/${noradId}`);
+    if (response.ok) {
+      return (await response.json()) as TleData;
+    }
+  } catch {
+    // Fall through to bundled fallback below.
+  }
+
+  return getFallbackTle(noradId) ?? null;
+}
 
 export function useSatellites() {
   const [tles, setTles] = useState<TleData[]>([]);
@@ -16,6 +30,11 @@ export function useSatellites() {
   const [hiddenNoradIds, setHiddenNoradIds] = useState<ReadonlySet<number>>(() => new Set());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+
+  const retryLoadTles = useCallback(() => {
+    setLoadAttempt((attempt) => attempt + 1);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -26,26 +45,33 @@ export function useSatellites() {
 
       try {
         const results = await Promise.all(
-          SATELLITES.map(async (satellite) => {
-            const response = await fetch(`/api/tle/${satellite.noradId}`);
-            if (!response.ok) {
-              return null;
-            }
-            return (await response.json()) as TleData;
-          }),
+          SATELLITES.map((satellite) => fetchTleForSatellite(satellite.noradId)),
         );
 
         const data = results.filter((value): value is TleData => value !== null);
 
         if (!cancelled) {
           if (data.length === 0) {
-            throw new Error("No TLE data available");
+            const fallbackTles = getAllFallbackTles();
+            if (fallbackTles.length > 0) {
+              setTles(fallbackTles);
+              return;
+            }
+            setTles([]);
+            setLoadError(true);
+            return;
           }
           setTles(data);
         }
       } catch {
         if (!cancelled) {
-          setLoadError(true);
+          const fallbackTles = getAllFallbackTles();
+          if (fallbackTles.length > 0) {
+            setTles(fallbackTles);
+          } else {
+            setTles([]);
+            setLoadError(true);
+          }
         }
       } finally {
         if (!cancelled) {
@@ -59,7 +85,7 @@ export function useSatellites() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadAttempt]);
 
   const deselect = useCallback(() => {
     setActiveNoradId(null);
@@ -128,6 +154,7 @@ export function useSatellites() {
     tles,
     loading,
     loadError,
+    retryLoadTles,
     activeNoradId,
     activeFutureId,
     hoverNoradId,
