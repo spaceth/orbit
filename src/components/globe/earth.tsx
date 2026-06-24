@@ -64,7 +64,7 @@ export function Earth({ colors, onDoubleClick }: EarthProps) {
     };
   }, [mapTexture]);
 
-  const sphereSegments = mapSize.width >= 8192 ? 256 : 128;
+  const sphereSegments = mapSize.width >= 4096 ? 256 : 128;
 
   return (
     <mesh

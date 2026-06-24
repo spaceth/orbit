@@ -29,11 +29,11 @@ export interface EarthMapSize {
   height: number;
 }
 
-/** Largest equirectangular bake — desktop GPUs with high texture limits. */
-export const DESKTOP_MAP_SIZE: EarthMapSize = { width: 16384, height: 8192 };
+/** Equirectangular bake for desktop — 2:1 aspect within common GPU limits. */
+export const DESKTOP_MAP_SIZE: EarthMapSize = { width: 8192, height: 4096 };
 
-/** Safe fallback for mobile GPUs (iOS Safari is typically capped at 4096). */
-export const MOBILE_MAP_SIZE: EarthMapSize = { width: 4096, height: 2048 };
+/** Smaller bake for mobile GPUs and memory-constrained devices. */
+export const MOBILE_MAP_SIZE: EarthMapSize = { width: 2048, height: 1024 };
 
 export function getMaxTextureSize(): number {
   if (typeof document === "undefined") {
@@ -53,9 +53,6 @@ export function getMaxTextureSize(): number {
 export function getEarthMapSize(maxTextureSize = getMaxTextureSize()): EarthMapSize {
   if (maxTextureSize >= DESKTOP_MAP_SIZE.width) {
     return DESKTOP_MAP_SIZE;
-  }
-  if (maxTextureSize >= 8192) {
-    return { width: 8192, height: 4096 };
   }
   return MOBILE_MAP_SIZE;
 }
