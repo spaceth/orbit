@@ -23,6 +23,7 @@ export type SatellitePurpose =
 
 /** Static registry entry — add or remove satellites in `src/data/satellites.ts`. */
 export interface SatelliteRecord {
+  id: string;
   noradId: number;
   name: string;
   purpose: SatellitePurpose;

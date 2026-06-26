@@ -8,6 +8,7 @@ import { GlobeLoading } from "@/components/globe-loading";
 import { SatellitePanel } from "@/components/satellite-panel";
 import { SiteFooter } from "@/components/site-footer";
 import { SpaceTHLogo } from "@/components/spaceth-logo";
+import { useSatelliteRouteSync } from "@/hooks/use-satellite-route";
 import { useSatellites } from "@/hooks/use-satellites";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { FUTURE_SATELLITES } from "@/lib/future-satellites";
@@ -57,31 +58,55 @@ export function OrbitViewer() {
     toggleVisibility,
   } = useSatellites();
 
+  const clearEarthFocus = useCallback(() => {
+    setEarthFocused(false);
+  }, []);
+
+  const focusSatellite = useCallback(() => {
+    setEarthFocused(false);
+  }, []);
+
+  const { navigateToNoradId, navigateToFutureId, navigateHome } = useSatelliteRouteSync({
+    loading,
+    availableNoradIds,
+    activeNoradId,
+    activeFutureId,
+    selectNoradId,
+    selectFutureId,
+    deselect,
+    onFocusSatellite: focusSatellite,
+    onClearFocus: clearEarthFocus,
+  });
+
   const handleSelectNoradId = useCallback(
     (noradId: number) => {
-      setEarthFocused(false);
+      focusSatellite();
       selectNoradId(noradId);
+      navigateToNoradId(noradId);
     },
-    [selectNoradId],
+    [focusSatellite, navigateToNoradId, selectNoradId],
   );
 
   const handleSelectFutureId = useCallback(
     (id: string) => {
-      setEarthFocused(false);
+      focusSatellite();
       selectFutureId(id);
+      navigateToFutureId(id);
     },
-    [selectFutureId],
+    [focusSatellite, navigateToFutureId, selectFutureId],
   );
 
   const handleEarthDoubleClick = useCallback(() => {
     deselect();
+    navigateHome();
     focusEarth();
-  }, [deselect, focusEarth]);
+  }, [deselect, focusEarth, navigateHome]);
 
   const handleDeselect = useCallback(() => {
-    setEarthFocused(false);
+    clearEarthFocus();
     deselect();
-  }, [deselect]);
+    navigateHome();
+  }, [clearEarthFocus, deselect, navigateHome]);
 
   return (
     <div className="relative h-full min-h-dvh w-full overflow-hidden bg-background text-foreground transition-colors">
