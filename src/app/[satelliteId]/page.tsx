@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { OrbitViewer } from "@/components/orbit-viewer";
 import { isSatelliteRouteId } from "@/lib/satellite-routes";
 import { FUTURE_SATELLITES } from "@/lib/future-satellites";
+import { LEGACY_SATELLITES } from "@/lib/legacy-satellites";
 import { SATELLITES } from "@/lib/satellites";
 
 export function generateStaticParams() {
   return [
     ...SATELLITES.map((satellite) => ({ satelliteId: satellite.id })),
+    ...LEGACY_SATELLITES.map((satellite) => ({ satelliteId: satellite.id })),
     ...FUTURE_SATELLITES.map((satellite) => ({ satelliteId: satellite.id })),
   ];
 }

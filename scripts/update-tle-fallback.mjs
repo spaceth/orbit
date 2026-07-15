@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 /** Keep in sync with `src/data/satellites.ts`. */
-const NORAD_IDS = [58016, 67683, 33396, 28786, 39500, 40141, 41552, 48963];
+const NORAD_IDS = [58016, 67683, 33396, 28786, 39500, 40141, 41552];
 
 const TLE_API_BASE = "https://tle.ivanstanojevic.me/api/tle";
 const root = dirname(dirname(fileURLToPath(import.meta.url)));

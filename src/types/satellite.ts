@@ -34,6 +34,19 @@ export interface SatelliteRecord {
   manufacturer?: string;
 }
 
+/** Ended missions — add or remove in `src/data/legacy-satellites.ts`. */
+export interface LegacySatelliteRecord {
+  id: string;
+  name: string;
+  purpose: SatellitePurpose;
+  endOfMission: string;
+  /** Historical NORAD ID for display only — not tracked. */
+  noradId?: number;
+  launchDate?: string;
+  launchVehicle?: string;
+  operator?: string;
+}
+
 /** Planned spacecraft — add or remove in `src/data/future-satellites.ts`. */
 export interface FutureSatelliteRecord {
   id: string;

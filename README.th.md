@@ -101,9 +101,20 @@ Orbit เริ่มต้นจากดาวเทียมไทยที�
 | Thaicom 6  |    39500 | Communication     |
 | Thaicom 7  |    40141 | Communication     |
 | Thaicom 8  |    41552 | Communication     |
-| Napa-2     |    48963 | Military          |
 
-รายการนี้สามารถอัปเดตได้จากไฟล์ข้อมูลดาวเทียมหลัก เมื่อเพิ่ม NORAD ID และ metadata พื้นฐานของดาวเทียมเข้าไปแล้ว ทั้ง API และ UI จะทำงานตามข้อมูลใหม่นั้นโดยอัตโนมัติ
+### ดาวเทียมในอดีต (Legacy)
+
+ดาวเทียมที่สิ้นสุดภารกิจหลักแล้วจะอยู่ในหมวด **ดาวเทียมในอดีต** เพื่อดูข้อมูลเท่านั้น ไม่มีการติดตามบนลูกโลก หน้ารายละเอียดจะแสดงข้อมูลการปล่อยและ **สิ้นสุดภารกิจ**
+
+| Satellite  | NORAD ID | Type                     |
+| ---------- | -------: | ------------------------ |
+| KnackSat-1 |    43761 | Education                |
+| Napa-1     |    46320 | Military                 |
+| BCCSat-1   |    48041 | Education                |
+| Napa-2     |    48963 | Military                 |
+| LogSat-2   |    62689 | Technology Demonstration |
+
+รายการเหล่านี้สามารถอัปเดตได้จาก `src/data/satellites.ts` และ `src/data/legacy-satellites.ts`
 
 ## Tech Stack
 

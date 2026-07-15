@@ -102,9 +102,20 @@ Orbit starts with Thai satellites that have NORAD IDs and available TLE data, in
 | Thaicom 6  |    39500 | Communication     |
 | Thaicom 7  |    40141 | Communication     |
 | Thaicom 8  |    41552 | Communication     |
-| Napa-2     |    48963 | Military          |
 
-This list can be updated from the main satellite data file. Once a NORAD ID and basic metadata are added, the API and UI will follow automatically.
+### Legacy
+
+Satellites whose primary mission has ended are listed under **Legacy** for reference only. They are not tracked on the globe. The detail view shows launch info and an **End of Mission** date.
+
+| Satellite  | NORAD ID | Type                     |
+| ---------- | -------: | ------------------------ |
+| KnackSat-1 |    43761 | Education                |
+| Napa-1     |    46320 | Military                 |
+| BCCSat-1   |    48041 | Education                |
+| Napa-2     |    48963 | Military                 |
+| LogSat-2   |    62689 | Technology Demonstration |
+
+These lists can be updated from `src/data/satellites.ts` and `src/data/legacy-satellites.ts`.
 
 ## Tech stack
 

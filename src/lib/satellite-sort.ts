@@ -1,4 +1,8 @@
-import type { FutureSatelliteRecord, SatelliteRecord } from "@/types/satellite";
+import type {
+  FutureSatelliteRecord,
+  LegacySatelliteRecord,
+  SatelliteRecord,
+} from "@/types/satellite";
 
 export type SatelliteSortKey = "launchDate" | "type" | "alphabet" | "operator";
 
@@ -13,10 +17,17 @@ function compareNames(a: string, b: string): number {
   return a.localeCompare(b, undefined, { sensitivity: "base" });
 }
 
-export function sortSatellites(
-  satellites: readonly SatelliteRecord[],
+type SortableSatellite = {
+  name: string;
+  purpose: string;
+  launchDate?: string;
+  operator?: string;
+};
+
+function sortByKey<T extends SortableSatellite>(
+  satellites: readonly T[],
   sortBy: SatelliteSortKey,
-): SatelliteRecord[] {
+): T[] {
   const sorted = [...satellites];
 
   switch (sortBy) {
@@ -51,6 +62,20 @@ export function sortSatellites(
   }
 
   return sorted;
+}
+
+export function sortSatellites(
+  satellites: readonly SatelliteRecord[],
+  sortBy: SatelliteSortKey,
+): SatelliteRecord[] {
+  return sortByKey(satellites, sortBy);
+}
+
+export function sortLegacySatellites(
+  satellites: readonly LegacySatelliteRecord[],
+  sortBy: SatelliteSortKey,
+): LegacySatelliteRecord[] {
+  return sortByKey(satellites, sortBy);
 }
 
 export function sortFutureSatellites(

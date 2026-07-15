@@ -5,10 +5,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "@/components/locale-provider";
 import {
   getFutureSatelliteDescription,
+  getLegacySatelliteDescription,
   getSatelliteDescription,
 } from "@/data/satellite-i18n";
 import type {
   FutureSatelliteRecord,
+  LegacySatelliteRecord,
   SatelliteRecord,
   SatelliteTelemetry,
   TleData,
@@ -21,6 +23,7 @@ import { formatTemplate, getPurposeLabel } from "@/lib/localization";
 import {
   SATELLITE_SORT_KEYS,
   sortFutureSatellites,
+  sortLegacySatellites,
   sortSatellites,
   type SatelliteSortKey,
 } from "@/lib/satellite-sort";
@@ -30,20 +33,26 @@ import { VisibilityIcon } from "./visibility-icon";
 
 interface SatellitePanelProps {
   satellites: readonly SatelliteRecord[];
+  legacySatellites: readonly LegacySatelliteRecord[];
   futureSatellites: readonly FutureSatelliteRecord[];
   availableNoradIds: number[];
   hiddenNoradIds: ReadonlySet<number>;
   activeNoradId: number | null;
+  activeLegacyId: string | null;
   activeFutureId: string | null;
   highlightedNoradId: number | null;
+  hoverLegacyId: string | null;
   hoverFutureId: string | null;
   activeSatellite: SatelliteRecord | null;
+  activeLegacySatellite: LegacySatelliteRecord | null;
   activeFutureSatellite: FutureSatelliteRecord | null;
   activeTle: TleData | null;
   activeTelemetry: SatelliteTelemetry | null;
   onSelectNoradId: (noradId: number) => void;
+  onSelectLegacyId: (id: string) => void;
   onSelectFutureId: (id: string) => void;
   onHoverNoradId: (noradId: number | null) => void;
+  onHoverLegacyId: (id: string | null) => void;
   onHoverFutureId: (id: string | null) => void;
   onToggleVisibility: (noradId: number) => void;
   onMobileReadingModeChange: (readingMode: boolean) => void;
@@ -74,20 +83,26 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
 
 export function SatellitePanel({
   satellites,
+  legacySatellites,
   futureSatellites,
   availableNoradIds,
   hiddenNoradIds,
   activeNoradId,
+  activeLegacyId,
   activeFutureId,
   highlightedNoradId,
+  hoverLegacyId,
   hoverFutureId,
   activeSatellite,
+  activeLegacySatellite,
   activeFutureSatellite,
   activeTle,
   activeTelemetry,
   onSelectNoradId,
+  onSelectLegacyId,
   onSelectFutureId,
   onHoverNoradId,
+  onHoverLegacyId,
   onHoverFutureId,
   onToggleVisibility,
   onMobileReadingModeChange,
@@ -101,12 +116,17 @@ export function SatellitePanel({
   const panelRef = useRef<HTMLElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
   const [readingMode, setReadingMode] = useState(false);
+  const [legacyExpanded, setLegacyExpanded] = useState(false);
   const [upcomingExpanded, setUpcomingExpanded] = useState(false);
   const [sortBy, setSortBy] = useState<SatelliteSortKey>("alphabet");
 
   const sortedSatellites = useMemo(
     () => sortSatellites(satellites, sortBy),
     [satellites, sortBy],
+  );
+  const sortedLegacySatellites = useMemo(
+    () => sortLegacySatellites(legacySatellites, sortBy),
+    [legacySatellites, sortBy],
   );
   const sortedFutureSatellites = useMemo(
     () => sortFutureSatellites(futureSatellites, sortBy),
@@ -123,7 +143,9 @@ export function SatellitePanel({
   const hasDetail =
     !loading &&
     !loadError &&
-    (activeFutureSatellite !== null || (activeSatellite !== null && activeTle !== null));
+    (activeFutureSatellite !== null ||
+      activeLegacySatellite !== null ||
+      (activeSatellite !== null && activeTle !== null));
 
   const updateReadingMode = useCallback(
     (next: boolean) => {
@@ -138,7 +160,13 @@ export function SatellitePanel({
     if (panelRef.current) {
       panelRef.current.scrollTop = 0;
     }
-  }, [activeNoradId, activeFutureId, updateReadingMode]);
+  }, [activeNoradId, activeLegacyId, activeFutureId, updateReadingMode]);
+
+  useEffect(() => {
+    if (activeLegacyId !== null) {
+      setLegacyExpanded(true);
+    }
+  }, [activeLegacyId]);
 
   useEffect(() => {
     const panel = panelRef.current;
@@ -268,6 +296,52 @@ export function SatellitePanel({
         })}
       </div>
 
+      {legacySatellites.length > 0 ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setLegacyExpanded((expanded) => !expanded)}
+            className="mt-5 flex w-full items-center gap-1.5 text-left text-xs font-medium uppercase tracking-[0.14em] text-muted transition-colors hover:text-foreground"
+            aria-expanded={legacyExpanded}
+          >
+            <ChevronIcon expanded={legacyExpanded} />
+            {ui.legacy}
+          </button>
+          {legacyExpanded ? (
+            <div className="mt-2 space-y-1">
+              {sortedLegacySatellites.map((satellite) => {
+                const isActive = activeLegacyId === satellite.id;
+                const isHighlighted = hoverLegacyId === satellite.id;
+
+                return (
+                  <div
+                    key={satellite.id}
+                    className={[
+                      "flex items-center transition-colors",
+                      isActive ? "bg-surface-active" : isHighlighted ? "bg-surface-hover" : "",
+                    ].join(" ")}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onSelectLegacyId(satellite.id)}
+                      onMouseEnter={() => onHoverLegacyId(satellite.id)}
+                      onMouseLeave={() => onHoverLegacyId(null)}
+                      className="flex min-w-0 flex-1 items-center justify-between px-2 py-1 text-left text-sm"
+                    >
+                      <span className="font-medium text-foreground">{satellite.name}</span>
+                      <span className="ml-2 shrink-0 text-xs text-muted">
+                        {getPurposeLabel(locale, satellite.purpose)}
+                      </span>
+                    </button>
+                    <span className="mr-1 h-6 w-6 shrink-0" aria-hidden />
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+        </>
+      ) : null}
+
       {futureSatellites.length > 0 ? (
         <>
           <button
@@ -363,7 +437,64 @@ export function SatellitePanel({
             </>
           ) : null}
 
-          {activeSatellite && activeTle && !activeFutureSatellite ? (
+          {activeLegacySatellite && !activeFutureSatellite ? (
+            <>
+              <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
+                {activeLegacySatellite.name}
+              </h1>
+              <p className="mt-1 text-sm text-muted">
+                {getPurposeLabel(locale, activeLegacySatellite.purpose)}
+              </p>
+              {activeLegacySatellite.noradId !== undefined ? (
+                <p className="mt-1 text-sm text-muted">
+                  {formatTemplate(ui.noradId, { noradId: activeLegacySatellite.noradId })}
+                  {activeLegacySatellite.operator
+                    ? ` · ${activeLegacySatellite.operator}`
+                    : null}
+                </p>
+              ) : activeLegacySatellite.operator ? (
+                <p className="mt-1 text-sm text-muted">{activeLegacySatellite.operator}</p>
+              ) : null}
+
+              {getLegacySatelliteDescription(locale, activeLegacySatellite.id) ? (
+                <p className="mt-3 text-sm leading-relaxed text-muted">
+                  {getLegacySatelliteDescription(locale, activeLegacySatellite.id)}
+                </p>
+              ) : null}
+
+              <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                {activeLegacySatellite.launchDate ? (
+                  <div>
+                    <dt className="text-muted">{ui.launchDate}</dt>
+                    <dd className="mt-0.5 font-medium tabular-nums text-foreground">
+                      {formatLaunchDate(activeLegacySatellite.launchDate, locale)}
+                    </dd>
+                  </div>
+                ) : null}
+                <div>
+                  <dt className="text-muted">{ui.endOfMission}</dt>
+                  <dd className="mt-0.5 font-medium tabular-nums text-foreground">
+                    {formatLaunchDate(activeLegacySatellite.endOfMission, locale)}
+                  </dd>
+                </div>
+                {activeLegacySatellite.launchVehicle ? (
+                  <div>
+                    <dt className="text-muted">{ui.launchVehicle}</dt>
+                    <dd className="mt-0.5 font-medium text-foreground">
+                      {activeLegacySatellite.launchVehicle}
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
+
+              <p className="mt-5 text-sm text-muted">{ui.missionEnded}</p>
+            </>
+          ) : null}
+
+          {activeSatellite &&
+          activeTle &&
+          !activeFutureSatellite &&
+          !activeLegacySatellite ? (
             <>
               <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
                 {activeSatellite.name}

@@ -24,12 +24,14 @@ export function useSatelliteRouteSync({
   loading,
   availableNoradIds,
   selectNoradId,
+  selectLegacyId,
   selectFutureId,
   onFocusSatellite,
 }: {
   loading: boolean;
   availableNoradIds: number[];
   selectNoradId: (noradId: number) => void;
+  selectLegacyId: (id: string) => void;
   selectFutureId: (id: string) => void;
   onFocusSatellite: () => void;
 }) {
@@ -61,6 +63,14 @@ export function useSatelliteRouteSync({
       return;
     }
 
+    if (route.type === "legacy") {
+      onFocusSatellite();
+      selectLegacyId(route.id);
+      cleanDeepLinkUrl();
+      deepLinkHandled.current = true;
+      return;
+    }
+
     if (loading) {
       return;
     }
@@ -80,6 +90,7 @@ export function useSatelliteRouteSync({
     loading,
     availableNoradIds,
     selectNoradId,
+    selectLegacyId,
     selectFutureId,
     onFocusSatellite,
   ]);

@@ -12,6 +12,7 @@ import { useSatelliteRouteSync } from "@/hooks/use-satellite-route";
 import { useSatellites } from "@/hooks/use-satellites";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { FUTURE_SATELLITES } from "@/lib/future-satellites";
+import { LEGACY_SATELLITES } from "@/lib/legacy-satellites";
 import { SATELLITES } from "@/lib/satellites";
 
 const GlobeScene = dynamic(
@@ -40,18 +41,23 @@ export function OrbitViewer() {
     loadError,
     retryLoadTles,
     activeNoradId,
+    activeLegacyId,
     activeFutureId,
     highlightedNoradId,
+    hoverLegacyId,
     hoverFutureId,
     activeSatellite,
+    activeLegacySatellite,
     activeFutureSatellite,
     activeTle,
     activeTelemetry,
     availableNoradIds,
     hiddenNoradIds,
     selectNoradId,
+    selectLegacyId,
     selectFutureId,
     setHoverNoradId,
+    setHoverLegacyId,
     setHoverFutureId,
     deselect,
     updateTelemetry,
@@ -70,6 +76,7 @@ export function OrbitViewer() {
     loading,
     availableNoradIds,
     selectNoradId,
+    selectLegacyId,
     selectFutureId,
     onFocusSatellite: focusSatellite,
   });
@@ -80,6 +87,14 @@ export function OrbitViewer() {
       selectNoradId(noradId);
     },
     [focusSatellite, selectNoradId],
+  );
+
+  const handleSelectLegacyId = useCallback(
+    (id: string) => {
+      focusSatellite();
+      selectLegacyId(id);
+    },
+    [focusSatellite, selectLegacyId],
   );
 
   const handleSelectFutureId = useCallback(
@@ -108,20 +123,26 @@ export function OrbitViewer() {
         <SiteFooter />
         <SatellitePanel
           satellites={SATELLITES}
+          legacySatellites={LEGACY_SATELLITES}
           futureSatellites={FUTURE_SATELLITES}
           availableNoradIds={availableNoradIds}
           hiddenNoradIds={hiddenNoradIds}
           activeNoradId={activeNoradId}
+          activeLegacyId={activeLegacyId}
           activeFutureId={activeFutureId}
           highlightedNoradId={highlightedNoradId}
+          hoverLegacyId={hoverLegacyId}
           hoverFutureId={hoverFutureId}
           activeSatellite={activeSatellite}
+          activeLegacySatellite={activeLegacySatellite}
           activeFutureSatellite={activeFutureSatellite}
           activeTle={activeTle}
           activeTelemetry={activeTelemetry}
           onSelectNoradId={handleSelectNoradId}
+          onSelectLegacyId={handleSelectLegacyId}
           onSelectFutureId={handleSelectFutureId}
           onHoverNoradId={setHoverNoradId}
+          onHoverLegacyId={setHoverLegacyId}
           onHoverFutureId={setHoverFutureId}
           onToggleVisibility={toggleVisibility}
           onMobileReadingModeChange={handleMobileReadingModeChange}

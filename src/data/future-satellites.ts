@@ -13,14 +13,14 @@ export const FUTURE_SATELLITES = [
     id: "tsc-1",
     name: "TSC-1",
     purpose: "Science",
-    launchInfo: "2027",
+    launchInfo: "TBD",
     operator: "NARIT",
   },
   {
     id: "theos-3",
     name: "THEOS-3",
     purpose: "Earth Observation",
-    launchInfo: "2027",
+    launchInfo: "TBD",
     operator: "GISTDA",
   },
 ] as const satisfies readonly FutureSatelliteRecord[];

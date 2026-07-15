@@ -46,8 +46,12 @@ export function formatOperationDuration(duration: OperationDuration, ui: UiText)
 }
 
 export function formatLaunchDate(date: string, locale: Locale): string {
+  if (/^\d{4}$/.test(date)) {
+    return date;
+  }
+
   const localeTag = locale === "th" ? "th-TH" : "en-US";
-  return new Date(date).toLocaleDateString(localeTag, {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString(localeTag, {
     year: "numeric",
     month: "short",
     day: "numeric",

@@ -71,12 +71,4 @@ export const SATELLITES = [
     launchVehicle: "Falcon 9",
     operator: "Thaicom",
   },
-  {
-    id: "napa-2",
-    noradId: 48963,
-    name: "Napa-2",
-    purpose: "Military",
-    launchDate: "2021-07-01",
-    launchVehicle: "Falcon 9",
-  },
 ] as const satisfies readonly SatelliteRecord[];
