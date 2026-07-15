@@ -61,6 +61,12 @@ html {
   background-color: #ffffff;
 }
 
+/* Thai text reads better without Latin-style letter-spacing. */
+html[lang="th"],
+html[lang="th"] * {
+  letter-spacing: normal !important;
+}
+
 html.dark {
   background-color: #000000;
 }

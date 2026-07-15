@@ -50,12 +50,13 @@ export function formatLaunchDate(date: string, locale: Locale): string {
     return date;
   }
 
-  const localeTag = locale === "th" ? "th-TH" : "en-US";
+  const localeTag = locale === "th" ? "th-TH-u-ca-gregory" : "en-US";
   return new Date(`${date}T00:00:00Z`).toLocaleDateString(localeTag, {
     year: "numeric",
-    month: "short",
+    month: locale === "th" ? "long" : "short",
     day: "numeric",
     timeZone: "UTC",
+    calendar: "gregory",
   });
 }
 

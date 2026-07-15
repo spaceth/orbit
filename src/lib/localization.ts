@@ -67,7 +67,7 @@ export const UI_TEXT = {
   },
   th: {
     loadingGlobe: "กำลังโหลดลูกโลก…",
-    inOrbit: "บนโคจร",
+    inOrbit: "บนวงโคจร",
     sortBy: "เรียงตาม",
     sortSatellites: "เรียงดาวเทียม",
     sortAlphabet: "ตัวอักษร",
