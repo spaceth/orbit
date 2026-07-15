@@ -1,55 +1,63 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 import { resolveSatelliteRoute } from "@/lib/satellite-routes";
-import { getSatelliteByNoradId } from "@/lib/satellites";
 
+function cleanDeepLinkUrl() {
+  if (typeof window === "undefined") {
+    return;
+  }
+  if (window.location.pathname === "/") {
+    return;
+  }
+  window.history.replaceState(null, "", "/");
+}
+
+/**
+ * Applies a satellite deep-link from the URL once (e.g. /theos-2), then cleans
+ * the address bar to `/` without a Next.js navigation so the globe stays mounted.
+ * In-app focus is client state only — this hook does not update the URL on select.
+ */
 export function useSatelliteRouteSync({
   loading,
   availableNoradIds,
-  activeNoradId,
-  activeFutureId,
   selectNoradId,
   selectFutureId,
-  deselect,
   onFocusSatellite,
-  onClearFocus,
 }: {
   loading: boolean;
   availableNoradIds: number[];
-  activeNoradId: number | null;
-  activeFutureId: string | null;
   selectNoradId: (noradId: number) => void;
   selectFutureId: (id: string) => void;
-  deselect: () => void;
   onFocusSatellite: () => void;
-  onClearFocus: () => void;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const satelliteIdFromPath = pathname === "/" ? null : pathname.replace(/^\//, "");
+  const deepLinkHandled = useRef(false);
 
   useEffect(() => {
+    if (deepLinkHandled.current) {
+      return;
+    }
+
     if (!satelliteIdFromPath) {
-      if (activeNoradId !== null || activeFutureId !== null) {
-        onClearFocus();
-        deselect();
-      }
+      deepLinkHandled.current = true;
       return;
     }
 
     const route = resolveSatelliteRoute(satelliteIdFromPath);
     if (!route) {
+      deepLinkHandled.current = true;
       return;
     }
 
     if (route.type === "future") {
-      if (activeFutureId !== route.id) {
-        onFocusSatellite();
-        selectFutureId(route.id);
-      }
+      onFocusSatellite();
+      selectFutureId(route.id);
+      cleanDeepLinkUrl();
+      deepLinkHandled.current = true;
       return;
     }
 
@@ -58,52 +66,21 @@ export function useSatelliteRouteSync({
     }
 
     if (!availableNoradIds.includes(route.noradId)) {
+      deepLinkHandled.current = true;
+      cleanDeepLinkUrl();
       return;
     }
 
-    if (activeNoradId !== route.noradId) {
-      onFocusSatellite();
-      selectNoradId(route.noradId);
-    }
+    onFocusSatellite();
+    selectNoradId(route.noradId);
+    cleanDeepLinkUrl();
+    deepLinkHandled.current = true;
   }, [
     satelliteIdFromPath,
     loading,
     availableNoradIds,
-    activeNoradId,
-    activeFutureId,
     selectNoradId,
     selectFutureId,
-    deselect,
     onFocusSatellite,
-    onClearFocus,
   ]);
-
-  const navigateToNoradId = useCallback(
-    (noradId: number) => {
-      const satellite = getSatelliteByNoradId(noradId);
-      if (!satellite) {
-        return;
-      }
-      router.replace(`/${satellite.id}`, { scroll: false });
-    },
-    [router],
-  );
-
-  const navigateToFutureId = useCallback(
-    (id: string) => {
-      router.replace(`/${id}`, { scroll: false });
-    },
-    [router],
-  );
-
-  const navigateHome = useCallback(() => {
-    router.replace("/", { scroll: false });
-  }, [router]);
-
-  return {
-    satelliteIdFromPath,
-    navigateToNoradId,
-    navigateToFutureId,
-    navigateHome,
-  };
 }

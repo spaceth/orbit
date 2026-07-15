@@ -85,6 +85,8 @@ Users can also hide or show each satellite individually. This is useful when you
 
 When a satellite is selected, the camera smoothly moves to focus on it. When it is deselected, the camera returns to the normal Earth view.
 
+You can deep-link to a satellite with a path such as `/theos-2`. Orbit focuses that satellite, then keeps the address bar on `/` so switching satellites in the session does not remount the globe.
+
 Orbit also supports Light Mode and Dark Mode. The interface and the 3D scene share the same theme system, so the UI and globe stay visually consistent.
 
 ## Satellites currently tracked

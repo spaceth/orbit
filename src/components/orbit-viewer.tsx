@@ -66,47 +66,39 @@ export function OrbitViewer() {
     setEarthFocused(false);
   }, []);
 
-  const { navigateToNoradId, navigateToFutureId, navigateHome } = useSatelliteRouteSync({
+  useSatelliteRouteSync({
     loading,
     availableNoradIds,
-    activeNoradId,
-    activeFutureId,
     selectNoradId,
     selectFutureId,
-    deselect,
     onFocusSatellite: focusSatellite,
-    onClearFocus: clearEarthFocus,
   });
 
   const handleSelectNoradId = useCallback(
     (noradId: number) => {
       focusSatellite();
       selectNoradId(noradId);
-      navigateToNoradId(noradId);
     },
-    [focusSatellite, navigateToNoradId, selectNoradId],
+    [focusSatellite, selectNoradId],
   );
 
   const handleSelectFutureId = useCallback(
     (id: string) => {
       focusSatellite();
       selectFutureId(id);
-      navigateToFutureId(id);
     },
-    [focusSatellite, navigateToFutureId, selectFutureId],
+    [focusSatellite, selectFutureId],
   );
 
   const handleEarthDoubleClick = useCallback(() => {
     deselect();
-    navigateHome();
     focusEarth();
-  }, [deselect, focusEarth, navigateHome]);
+  }, [deselect, focusEarth]);
 
   const handleDeselect = useCallback(() => {
     clearEarthFocus();
     deselect();
-    navigateHome();
-  }, [clearEarthFocus, deselect, navigateHome]);
+  }, [clearEarthFocus, deselect]);
 
   return (
     <div className="relative h-full min-h-dvh w-full overflow-hidden bg-background text-foreground transition-colors">
