@@ -1,9 +1,12 @@
 "use client";
 
+import { useGLTF } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { Vector3 } from "three";
 
-import { parseTle } from "@/lib/orbit";
+import { getEcfPosition, parseTle } from "@/lib/orbit";
+import { getSatelliteByNoradId } from "@/lib/satellites";
 import type { ThemeColors } from "@/lib/theme";
 import type { SatelliteTelemetry, TleData } from "@/types/satellite";
 
@@ -45,13 +48,27 @@ function SceneContent({
 }: GlobeSceneProps) {
   const satellites = useMemo(
     () =>
-      tles.map((tle) => ({
-        noradId: tle.noradId,
-        satrec: parseTle(tle),
-        tleLine2: tle.line2,
-      })),
+      tles.map((tle) => {
+        const satrec = parseTle(tle);
+
+        return {
+          noradId: tle.noradId,
+          satrec,
+          tleLine2: tle.line2,
+          model: getSatelliteByNoradId(tle.noradId)?.model,
+          currentPosition: getEcfPosition(satrec, new Date()) ?? new Vector3(),
+        };
+      }),
     [tles],
   );
+
+  useEffect(() => {
+    for (const satellite of satellites) {
+      if (satellite.model?.available) {
+        useGLTF.preload(satellite.model.src);
+      }
+    }
+  }, [satellites]);
 
   return (
     <>
@@ -73,7 +90,9 @@ function SceneContent({
         return (
           <group key={satellite.noradId}>
             <OrbitTrail
+              noradId={satellite.noradId}
               satrec={satellite.satrec}
+              currentPosition={satellite.currentPosition}
               color={themeColors.orbitTrail}
               isHighlighted={isHighlighted}
               isActive={isActive}
@@ -84,7 +103,9 @@ function SceneContent({
             <SatelliteMarker
               noradId={satellite.noradId}
               satrec={satellite.satrec}
+              currentPosition={satellite.currentPosition}
               tleLine2={satellite.tleLine2}
+              model={satellite.model}
               color={themeColors.marker}
               isHighlighted={isHighlighted}
               isActive={isActive}
@@ -118,7 +139,7 @@ export function GlobeScene(props: GlobeSceneProps) {
   return (
     <Canvas
       className="h-full w-full"
-      camera={{ position: [0, 0, 2.8], fov: 45 }}
+      camera={{ position: [0, 0, 2.8], fov: 45, near: 0.002, far: 100 }}
       gl={{ antialias: true, alpha: false }}
       onPointerMissed={handlePointerMissed}
     >

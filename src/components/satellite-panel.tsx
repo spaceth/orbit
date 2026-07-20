@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useLocale } from "@/components/locale-provider";
@@ -30,6 +31,17 @@ import {
 
 import { OperationCounter } from "./operation-counter";
 import { VisibilityIcon } from "./visibility-icon";
+
+const SatelliteModelPreview = dynamic(
+  () =>
+    import("@/components/satellite-model-preview").then(
+      (module) => module.SatelliteModelPreview,
+    ),
+  {
+    ssr: false,
+    loading: () => <div className="mt-4 h-64 animate-pulse bg-surface-skeleton" />,
+  },
+);
 
 interface SatellitePanelProps {
   satellites: readonly SatelliteRecord[];
@@ -192,7 +204,7 @@ export function SatellitePanel({
     <aside
       ref={panelRef}
       className={[
-        "glass-panel satellite-panel fixed top-5 left-5 z-20 w-[min(92vw,22rem)] p-5 max-sm:relative max-sm:top-auto max-sm:left-auto max-sm:z-auto max-sm:w-full",
+        "glass-panel satellite-panel fixed top-5 left-5 z-20 max-h-[calc(100dvh-2.5rem)] w-[min(92vw,22rem)] overflow-y-auto overscroll-contain p-5 max-sm:relative max-sm:top-auto max-sm:left-auto max-sm:z-auto max-sm:w-full",
         isMobile && readingMode ? "satellite-panel--reading" : "",
       ].join(" ")}
     >
@@ -433,6 +445,12 @@ export function SatellitePanel({
               <p className="mt-3 text-sm leading-relaxed text-muted">
                 {getFutureSatelliteDescription(locale, activeFutureSatellite.id)}
               </p>
+              {activeFutureSatellite.model ? (
+                <SatelliteModelPreview
+                  name={activeFutureSatellite.name}
+                  model={activeFutureSatellite.model}
+                />
+              ) : null}
               <p className="mt-5 text-sm text-muted">{ui.notYetInOrbit}</p>
             </>
           ) : null}
@@ -460,6 +478,13 @@ export function SatellitePanel({
                 <p className="mt-3 text-sm leading-relaxed text-muted">
                   {getLegacySatelliteDescription(locale, activeLegacySatellite.id)}
                 </p>
+              ) : null}
+
+              {activeLegacySatellite.model ? (
+                <SatelliteModelPreview
+                  name={activeLegacySatellite.name}
+                  model={activeLegacySatellite.model}
+                />
               ) : null}
 
               <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
@@ -516,6 +541,13 @@ export function SatellitePanel({
                 <p className="mt-3 text-sm leading-relaxed text-muted">
                   {getSatelliteDescription(locale, activeSatellite.noradId)}
                 </p>
+              ) : null}
+
+              {activeSatellite.model ? (
+                <SatelliteModelPreview
+                  name={activeSatellite.name}
+                  model={activeSatellite.model}
+                />
               ) : null}
 
               {activeTelemetry ? (

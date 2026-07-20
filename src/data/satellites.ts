@@ -17,6 +17,7 @@ export const SATELLITES = [
     launchDate: "2023-10-09",
     launchVehicle: "Vega",
     operator: "GISTDA",
+    model: { src: "/models/satellites/theos-2.glb" },
   },
   {
     id: "knacksat-2",
@@ -25,6 +26,17 @@ export const SATELLITES = [
     purpose: "Education",
     launchDate: "2026-02-03",
     launchVehicle: "H3/ISS/JEM/J-SSOD",
+    model: {
+      src: "/models/satellites/knacksat-2.glb",
+      available: true,
+      orbitWorldScale: 0.014,
+      focusDistance: 0.05,
+      orbitAlignment: {
+        forwardAxis: "+Y",
+        nadirAxis: "+Z",
+        smoothing: 7,
+      },
+    },
   },
   {
     id: "theos",
@@ -34,6 +46,7 @@ export const SATELLITES = [
     launchDate: "2008-10-01",
     launchVehicle: "Dnepr",
     operator: "GISTDA",
+    model: { src: "/models/satellites/theos.glb" },
   },
   {
     id: "thaicom-4",
@@ -43,6 +56,7 @@ export const SATELLITES = [
     launchDate: "2005-08-11",
     launchVehicle: "Ariane 5",
     operator: "Thaicom",
+    model: { src: "/models/satellites/thaicom-4.glb" },
   },
   {
     id: "thaicom-6",
@@ -52,6 +66,7 @@ export const SATELLITES = [
     launchDate: "2013-12-03",
     launchVehicle: "Falcon 9",
     operator: "Thaicom",
+    model: { src: "/models/satellites/thaicom-6.glb" },
   },
   {
     id: "thaicom-7",
@@ -61,6 +76,7 @@ export const SATELLITES = [
     launchDate: "2014-09-10",
     launchVehicle: "Falcon 9",
     operator: "Thaicom",
+    model: { src: "/models/satellites/thaicom-7.glb" },
   },
   {
     id: "thaicom-8",
@@ -70,5 +86,6 @@ export const SATELLITES = [
     launchDate: "2016-05-27",
     launchVehicle: "Falcon 9",
     operator: "Thaicom",
+    model: { src: "/models/satellites/thaicom-8.glb" },
   },
 ] as const satisfies readonly SatelliteRecord[];

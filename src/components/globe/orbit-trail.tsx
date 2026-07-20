@@ -2,15 +2,77 @@
 
 import { Line } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef, useState } from "react";
-import { Vector3 } from "three";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  BufferAttribute,
+  BufferGeometry,
+  Line as ThreeLine,
+  LineBasicMaterial,
+  Vector3,
+} from "three";
 
-import { getEcfPosition, isGeostationaryTrail, sampleOrbitTrail, type SatRec } from "@/lib/orbit";
+import { isGeostationaryTrail, sampleOrbitTrail, type SatRec } from "@/lib/orbit";
 
-const TRAIL_REFRESH_SECONDS = 0.5;
+const TRAIL_REFRESH_SECONDS = 10;
+
+interface DynamicTrailEndpointProps {
+  trailEnd: Vector3;
+  currentPosition: Vector3;
+  color: string;
+  opacity: number;
+}
+
+function DynamicTrailEndpoint({
+  trailEnd,
+  currentPosition,
+  color,
+  opacity,
+}: DynamicTrailEndpointProps) {
+  const connector = useMemo(() => {
+    const positions = new Float32Array(6);
+    const geometry = new BufferGeometry();
+    geometry.setAttribute("position", new BufferAttribute(positions, 3));
+
+    const material = new LineBasicMaterial({
+      color,
+      opacity,
+      transparent: true,
+      depthWrite: false,
+    });
+    const line = new ThreeLine(geometry, material);
+    line.frustumCulled = false;
+    line.renderOrder = 1;
+    return line;
+  }, [color, opacity]);
+
+  useEffect(
+    () => () => {
+      connector.geometry.dispose();
+      connector.material.dispose();
+    },
+    [connector],
+  );
+
+  useFrame(() => {
+    const positionAttribute = connector.geometry.getAttribute("position");
+    const positions = positionAttribute.array as Float32Array;
+
+    positions[0] = trailEnd.x;
+    positions[1] = trailEnd.y;
+    positions[2] = trailEnd.z;
+    positions[3] = currentPosition.x;
+    positions[4] = currentPosition.y;
+    positions[5] = currentPosition.z;
+    positionAttribute.needsUpdate = true;
+  });
+
+  return <primitive object={connector} />;
+}
 
 interface OrbitTrailProps {
+  noradId: number;
   satrec: SatRec;
+  currentPosition: Vector3;
   color: string;
   isHighlighted: boolean;
   isActive: boolean;
@@ -20,7 +82,9 @@ interface OrbitTrailProps {
 }
 
 export function OrbitTrail({
+  noradId,
   satrec,
+  currentPosition,
   color,
   isHighlighted,
   isActive,
@@ -31,50 +95,33 @@ export function OrbitTrail({
   const [points, setPoints] = useState<Vector3[]>(() =>
     sampleOrbitTrail(satrec, new Date()),
   );
-  const pointsRef = useRef<Vector3[]>(points);
-  const lastRefreshRef = useRef(0);
+  const nextRefreshRef = useRef<number | null>(null);
   const satrecRef = useRef(satrec);
 
   useFrame((state) => {
-    if (satrecRef.current !== satrec) {
-      satrecRef.current = satrec;
-      lastRefreshRef.current = 0;
-    }
-
-    const now = new Date();
-    const current = getEcfPosition(satrec, now);
-    if (!current) {
-      return;
-    }
-
     const elapsed = state.clock.elapsedTime;
-    if (elapsed - lastRefreshRef.current >= TRAIL_REFRESH_SECONDS) {
-      lastRefreshRef.current = elapsed;
-      const trail = sampleOrbitTrail(satrec, now);
-      pointsRef.current = trail;
-    }
+    const satrecChanged = satrecRef.current !== satrec;
+    const refreshPhase =
+      ((Math.abs(noradId) * 0.61803398875) % 1) * TRAIL_REFRESH_SECONDS;
 
-    const trail = pointsRef.current;
-    if (trail.length === 0) {
+    if (satrecChanged) {
+      satrecRef.current = satrec;
+      setPoints(sampleOrbitTrail(satrec, new Date()));
+      nextRefreshRef.current = elapsed + refreshPhase;
       return;
     }
 
-    if (isGeostationaryTrail(trail)) {
-      const radius = current.length();
-      const anchorAngle = Math.atan2(current.z, current.x);
-      for (let index = 0; index < trail.length; index += 1) {
-        const angle = anchorAngle + (index / (trail.length - 1)) * Math.PI * 2;
-        trail[index].set(
-          Math.cos(angle) * radius,
-          current.y,
-          Math.sin(angle) * radius,
-        );
-      }
-    } else {
-      trail[trail.length - 1].copy(current);
+    if (nextRefreshRef.current === null) {
+      nextRefreshRef.current = elapsed + refreshPhase;
+      return;
     }
 
-    setPoints(trail.slice());
+    if (elapsed < nextRefreshRef.current) {
+      return;
+    }
+
+    nextRefreshRef.current = elapsed + TRAIL_REFRESH_SECONDS;
+    setPoints(sampleOrbitTrail(satrec, new Date()));
   });
 
   const linePoints = useMemo(
@@ -83,6 +130,7 @@ export function OrbitTrail({
   );
 
   const maxOpacity = isHighlighted ? 0.95 : isActive ? 0.7 : 0.3;
+  const trailEnd = points[points.length - 1];
   const isGeoRing = isGeostationaryTrail(points);
   const lineWidth = isGeoRing
     ? isHighlighted
@@ -147,6 +195,14 @@ export function OrbitTrail({
           />
         );
       })}
+      {trailEnd ? (
+        <DynamicTrailEndpoint
+          trailEnd={trailEnd}
+          currentPosition={currentPosition}
+          color={color}
+          opacity={maxOpacity}
+        />
+      ) : null}
     </group>
   );
 }

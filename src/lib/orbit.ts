@@ -6,9 +6,13 @@ import {
   twoline2satrec,
 } from "satellite.js";
 import type { SatRec } from "satellite.js";
-import { Vector3 } from "three";
+import { Matrix4, Quaternion, Vector3 } from "three";
 
-import type { SatelliteTelemetry, TleData } from "@/types/satellite";
+import type {
+  SatelliteModelAxis,
+  SatelliteTelemetry,
+  TleData,
+} from "@/types/satellite";
 
 import { getOrbitalAltitudesFromTle } from "./tle";
 
@@ -19,6 +23,16 @@ const EARTH_RADIUS_KM = 6371;
 const TRAIL_STEPS = 180;
 const GEO_RING_STEPS = 240;
 const STATIONARY_TRAIL_THRESHOLD = 0.08;
+const ATTITUDE_SAMPLE_OFFSET_MS = 2_000;
+
+const MODEL_AXIS_VECTORS: Record<SatelliteModelAxis, Vector3> = {
+  "+X": new Vector3(1, 0, 0),
+  "-X": new Vector3(-1, 0, 0),
+  "+Y": new Vector3(0, 1, 0),
+  "-Y": new Vector3(0, -1, 0),
+  "+Z": new Vector3(0, 0, 1),
+  "-Z": new Vector3(0, 0, -1),
+};
 
 export function parseTle(tle: TleData): SatRec {
   return twoline2satrec(tle.line1, tle.line2);
@@ -73,6 +87,71 @@ export function getEcfPosition(satrec: SatRec, date: Date): Vector3 | null {
   const gmst = gstime(date);
   const ecf = eciToEcf(result.position, gmst);
   return ecfToVector(ecf);
+}
+
+/**
+ * Builds a visual attitude that follows the Earth-fixed orbit trail.
+ * This is an LVLH-style visualization, not real spacecraft attitude telemetry.
+ */
+export function getOrbitAlignedQuaternion(
+  satrec: SatRec,
+  date: Date,
+  currentPosition: Vector3,
+  forwardAxis: SatelliteModelAxis = "+Y",
+  nadirAxis: SatelliteModelAxis = "+Z",
+): Quaternion | null {
+  const previousPosition = getEcfPosition(
+    satrec,
+    new Date(date.getTime() - ATTITUDE_SAMPLE_OFFSET_MS),
+  );
+  const nextPosition = getEcfPosition(
+    satrec,
+    new Date(date.getTime() + ATTITUDE_SAMPLE_OFFSET_MS),
+  );
+
+  if (!previousPosition || !nextPosition) {
+    return null;
+  }
+
+  const worldForward = nextPosition.sub(previousPosition);
+  if (worldForward.lengthSq() < 1e-12) {
+    return null;
+  }
+  worldForward.normalize();
+
+  // Project nadir onto the plane perpendicular to travel so the frame remains
+  // orthonormal even on slightly eccentric orbits.
+  const worldNadir = currentPosition
+    .clone()
+    .negate()
+    .addScaledVector(worldForward, currentPosition.dot(worldForward));
+  if (worldNadir.lengthSq() < 1e-12) {
+    return null;
+  }
+  worldNadir.normalize();
+
+  const localForward = MODEL_AXIS_VECTORS[forwardAxis].clone();
+  const localNadir = MODEL_AXIS_VECTORS[nadirAxis]
+    .clone()
+    .addScaledVector(localForward, -MODEL_AXIS_VECTORS[nadirAxis].dot(localForward));
+  if (localNadir.lengthSq() < 1e-12) {
+    return null;
+  }
+  localNadir.normalize();
+
+  const localBasis = new Matrix4().makeBasis(
+    localForward,
+    localNadir,
+    localForward.clone().cross(localNadir).normalize(),
+  );
+  const worldBasis = new Matrix4().makeBasis(
+    worldForward,
+    worldNadir,
+    worldForward.clone().cross(worldNadir).normalize(),
+  );
+  const rotation = worldBasis.multiply(localBasis.invert());
+
+  return new Quaternion().setFromRotationMatrix(rotation).normalize();
 }
 
 export function sampleOrbitTrail(satrec: SatRec, startDate: Date): Vector3[] {

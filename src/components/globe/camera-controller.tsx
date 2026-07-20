@@ -3,25 +3,42 @@
 import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
-import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { Vector3 } from "three";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
 import { getEcfPosition, type SatRec } from "@/lib/orbit";
+import type { SatelliteModelConfig } from "@/types/satellite";
 
 interface CameraControllerProps {
   activeNoradId: number | null;
   earthFocused: boolean;
   earthFocusRequest: number;
-  satellites: { noradId: number; satrec: SatRec }[];
+  satellites: {
+    noradId: number;
+    satrec: SatRec;
+    model?: SatelliteModelConfig;
+  }[];
 }
 
 const EARTH_CENTER = new Vector3(0, 0, 0);
 const DEFAULT_CAMERA_DISTANCE = 2.8;
+const DEFAULT_MODEL_FOCUS_DISTANCE = 0.07;
 
-function getFocusDistance(satRadius: number): number {
+function getFocusDistance(
+  satRadius: number,
+  model?: SatelliteModelConfig,
+): number {
+  if (model?.available) {
+    return (
+      model.focusDistance ??
+      Math.max((model.orbitWorldScale ?? 0.014) * 5, DEFAULT_MODEL_FOCUS_DISTANCE)
+    );
+  }
+
   if (satRadius > 5) {
     return 2.8;
   }
+
   return 0.55;
 }
 
@@ -120,7 +137,7 @@ export function CameraController({
       controls.target.lerp(position, t);
 
       const radius = position.length();
-      const focusDistance = getFocusDistance(radius);
+      const focusDistance = getFocusDistance(position.length(), satellite.model);
       desiredCamera.current
         .copy(position)
         .normalize()
@@ -150,7 +167,7 @@ export function CameraController({
     <OrbitControls
       ref={controlsRef}
       enablePan={false}
-      minDistance={0.08}
+      minDistance={0.025}
       maxDistance={40}
       enableDamping
       dampingFactor={0.05}
