@@ -10,6 +10,7 @@ import type { OmmData, SatelliteTelemetry } from "@/types/satellite";
 import { CameraController } from "./camera-controller";
 import { CameraViewportOffset } from "./camera-viewport-offset";
 import { Earth } from "./earth";
+import { Moon } from "./moon";
 import { OrbitTrail } from "./orbit-trail";
 import { SatelliteMarker } from "./satellite-marker";
 
@@ -60,6 +61,7 @@ function SceneContent({
       <directionalLight position={[5, 2, 5]} intensity={2} />
       <directionalLight position={[-3, -1, -2]} intensity={0.6} />
       <Earth colors={themeColors} onDoubleClick={onEarthDoubleClick} />
+      <Moon bodyColor={themeColors.muted} />
 
       {satellites.map((satellite) => {
         if (hiddenNoradIds.has(satellite.noradId)) {

@@ -151,7 +151,7 @@ export function CameraController({
       ref={controlsRef}
       enablePan={false}
       minDistance={0.08}
-      maxDistance={40}
+      maxDistance={90}
       enableDamping
       dampingFactor={0.05}
       rotateSpeed={0.5}
