@@ -2,68 +2,76 @@
 
 Orbit is a minimal 3D satellite tracker for Thailand spacecraft, built by Spaceth. It lets you see where Thai satellites are above Earth in a visual, interactive, and easy-to-understand way, without needing to open any specialized tracking software.
 
-The site does not “guess” where a satellite is. Instead, it uses real orbital data called **TLE**, then calculates where each satellite should be at the current moment.
+The site does not “guess” where a satellite is. Instead, it uses real orbital data called **OMM**, then calculates where each satellite should be at the current moment.
 
-## What is TLE?
+## Why OMM instead of TLE?
 
-**TLE** stands for **Two-Line Element**. It is a compact text format that describes a satellite’s orbit using two lines of data.
+Orbit previously used **TLE** (Two-Line Element) data. That format is hitting a hard limit: NORAD catalog numbers only fit in five digits, and CelesTrak has announced that those numbers have run out.
 
-At first glance, a TLE may look like a strange block of numbers from the Cold War era. But inside, it contains important orbital information, such as the satellite’s inclination, orbital speed, orbital shape, and the exact time that data refers to.
+As of **2026-07-11**, with the addition of the satellite Saramago, newly cataloged objects receive **6-digit** catalog numbers (100000+). GP data for those objects is **not** available in the legacy TLE format. CelesTrak’s notice and guidance are here: [A New Way to Obtain GP Data](https://celestrak.org/NORAD/documentation/gp-data-formats.php).
 
-In simple terms, a TLE is like a “latest snapshot” of a satellite’s orbit. From that snapshot, we can use a mathematical model to calculate where the satellite should be a few minutes later, a few hours later, or even at a previous point in time.
+Orbit therefore migrated to **OMM** (Orbit Mean-Elements Message) — a structured, future-proof GP format that still feeds the same **SGP4** model, so tracking can keep working as the catalog grows beyond five digits.
 
-Orbit does not store satellite positions as pre-made points. It downloads the latest TLE, then calculates the satellite’s real-time position in the browser.
+## What is OMM?
+
+**OMM** stands for **Orbit Mean-Elements Message**. It is a CCSDS standard for exchanging the same kind of mean orbital elements that were traditionally distributed as Two-Line Element sets (TLE), in a structured, machine-readable JSON (or XML/KVN) format.
+
+An OMM contains important orbital information such as the satellite’s inclination, mean motion, eccentricity, and the epoch that data refers to — plus drag terms used by SGP4.
+
+In simple terms, an OMM is a “latest snapshot” of a satellite’s orbit. From that snapshot, we can use a mathematical model to calculate where the satellite should be a few minutes later, a few hours later, or even at a previous point in time.
+
+Orbit does not store satellite positions as pre-made points. It downloads the latest OMM, then calculates the satellite’s real-time position in the browser.
 
 ## How does the site know where a satellite is?
 
-After Orbit gets a TLE, it uses an orbital model called **SGP4** to calculate the satellite’s position.
+After Orbit gets an OMM, it uses an orbital model called **SGP4** to calculate the satellite’s position.
 
-SGP4 is a long-standing standard model used with TLE data. Think of it as a classic orbital calculator that is still widely used in satellite tracking today.
+SGP4 is a long-standing standard Simplified Perturbations model used with mean-element data (historically TLE, now also OMM). Think of it as a classic orbital calculator that is still widely used in satellite tracking today.
 
-This project uses **satellite.js**, a JavaScript library that can read TLE data and calculate satellite positions using SGP4.
+This project uses **satellite.js**, a JavaScript library that can read OMM JSON and calculate satellite positions using SGP4.
 
 The process looks roughly like this:
 
-1. The site downloads TLE data for each satellite.
-2. satellite.js reads the TLE and turns it into an orbital model.
+1. The site downloads OMM data for each satellite.
+2. satellite.js reads the OMM and turns it into an orbital model.
 3. SGP4 calculates the satellite’s position at the current time.
 4. The system converts that position into latitude, longitude, altitude, and a 3D position on the globe.
 5. The site renders that position as a dot and orbit trail on the 3D Earth.
 
-So, TLE is the starting data, SGP4 is the calculation method, and satellite.js is the tool that makes them usable on the web.
+So, OMM is the starting data, SGP4 is the calculation method, and satellite.js is the tool that makes them usable on the web.
 
-## Where does the TLE data come from?
+## Where does the OMM data come from?
 
-Orbit gets TLE data through an API from:
+Orbit gets OMM (GP) data from:
 
-**tle.ivanstanojevic.me**
+**[CelesTrak](https://celestrak.org/)** (`gp.php` JSON by NORAD catalog number)
 
-However, the site does not let users fetch TLE data for any object they want. Orbit uses an internal API only for Thai satellites included in the project’s satellite list.
+However, the site does not let users fetch OMM data for any object they want. Orbit uses an internal API only for Thai satellites included in the project’s satellite list.
 
-On the server side, there is a route that fetches TLE data by NORAD ID, such as THEOS-2, KnackSat-2, THEOS, or Thaicom. Before fetching anything, the system checks whether that NORAD ID is in the allowed list.
+On the server side, there is a route that fetches OMM data by NORAD ID, such as THEOS-2, KnackSat-2, THEOS, or Thaicom. Before fetching anything, the system checks whether that NORAD ID is in the allowed list.
 
 This is done so the API does not become an open proxy that anyone can use to fetch random data. It also helps keep the satellite list easy to control.
 
-TLE data is cached for about 1 hour. Satellite orbits do not change every second like stock prices, so caching helps the site load faster and avoids unnecessary API calls.
+OMM data is cached for about 1 hour. Satellite orbits do not change every second like stock prices, so caching helps the site load faster and avoids unnecessary API calls.
 
-## Fallback TLE
+## Fallback OMM
 
-If the live TLE API is unavailable, Orbit falls back to a bundled copy of TLE data stored in the project at `src/data/tle-fallback.json`.
+If the live CelesTrak fetch is unavailable, Orbit falls back to a bundled copy of OMM data stored in the project at `src/data/omm-fallback.json`.
 
 The fallback works at two levels:
 
-1. **Server** — the `/api/tle/[id]` route tries the live API first. If that fails, it returns the bundled TLE for that satellite.
+1. **Server** — the `/api/omm/[id]` route tries CelesTrak first. If that fails, it returns the bundled OMM for that satellite.
 2. **Browser** — if a request to the API route still fails, the client uses the same bundled data so tracking can continue offline or during outages.
 
 The globe and satellite list keep working with fallback data. An error with a **Try again** button appears only when both the live API and the bundled fallback are unavailable.
 
-To refresh the fallback file from the same API (recommended about once a week):
+To refresh the fallback file from CelesTrak (recommended about once a week):
 
 ```bash
-npm run update-tle-fallback
+npm run update-omm-fallback
 ```
 
-This re-fetches TLEs for every satellite in the project’s registry and updates `src/data/tle-fallback.json`.
+This re-fetches OMMs for every satellite in the project’s registry and updates `src/data/omm-fallback.json`.
 
 ## What powers the 3D view?
 
@@ -91,7 +99,7 @@ Orbit also supports Light Mode and Dark Mode. The interface and the 3D scene sha
 
 ## Satellites currently tracked
 
-Orbit starts with Thai satellites that have NORAD IDs and available TLE data, including:
+Orbit starts with Thai satellites that have NORAD IDs and available OMM data, including:
 
 | Satellite  | NORAD ID | Type              |
 | ---------- | -------: | ----------------- |
@@ -121,11 +129,11 @@ These lists can be updated from `src/data/satellites.ts` and `src/data/legacy-sa
 
 Orbit is built with **Next.js**, **React**, **TypeScript**, **Three.js**, **React Three Fiber**, **satellite.js**, and **Tailwind CSS**.
 
-For orbital calculation, it uses satellite.js to read TLE data and propagate satellite positions with SGP4.
+For orbital calculation, it uses satellite.js to read OMM JSON and propagate satellite positions with SGP4.
 
 For the 3D view, it uses Three.js and React Three Fiber.
 
-For data fetching, it uses a Next.js API Route to fetch and cache TLE data.
+For data fetching, it uses a Next.js API Route to fetch and cache OMM data from CelesTrak.
 
 For styling, it uses Tailwind CSS and shared theme tokens for Light Mode and Dark Mode.
 
@@ -145,4 +153,4 @@ npm run build
 npm run start
 ```
 
-In short, Orbit is a small web project that connects raw orbital data with a visual 3D experience. It takes something that normally lives inside a dry TLE file and turns it into an interactive globe, so anyone can see where Thai satellites are flying above Earth.
+In short, Orbit is a small web project that connects raw orbital data with a visual 3D experience. It takes structured OMM mean elements and turns them into an interactive globe, so anyone can see where Thai satellites are flying above Earth.

@@ -2,15 +2,15 @@ import {
   eciToEcf,
   eciToGeodetic,
   gstime,
+  json2satrec,
   propagate,
-  twoline2satrec,
 } from "satellite.js";
 import type { SatRec } from "satellite.js";
 import { Vector3 } from "three";
 
-import type { SatelliteTelemetry, TleData } from "@/types/satellite";
+import type { OmmData, SatelliteTelemetry } from "@/types/satellite";
 
-import { getOrbitalAltitudesFromTle } from "./tle";
+import { getOrbitalAltitudesFromOmm, ommToJsonObject } from "./omm";
 
 export type { SatRec };
 
@@ -20,8 +20,8 @@ const TRAIL_STEPS = 180;
 const GEO_RING_STEPS = 240;
 const STATIONARY_TRAIL_THRESHOLD = 0.08;
 
-export function parseTle(tle: TleData): SatRec {
-  return twoline2satrec(tle.line1, tle.line2);
+export function parseOmm(omm: OmmData): SatRec {
+  return json2satrec(ommToJsonObject(omm));
 }
 
 function ecfToVector(position: { x: number; y: number; z: number }): Vector3 {
@@ -36,15 +36,13 @@ function getOrbitalPeriodMs(satrec: SatRec): number {
   return periodMinutes * 60 * 1000;
 }
 
-export function getTelemetry(satrec: SatRec, tleLine2: string, date: Date): SatelliteTelemetry | null {
+export function getTelemetry(
+  satrec: SatRec,
+  omm: Pick<OmmData, "eccentricity" | "meanMotion">,
+  date: Date,
+): SatelliteTelemetry | null {
   const result = propagate(satrec, date);
-  if (
-    !result ||
-    !result.position ||
-    result.position === true ||
-    !result.velocity ||
-    result.velocity === true
-  ) {
+  if (!result?.position || !result.velocity) {
     return null;
   }
 
@@ -54,7 +52,7 @@ export function getTelemetry(satrec: SatRec, tleLine2: string, date: Date): Sate
   const velocityKmS = Math.sqrt(
     velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z,
   );
-  const { apogeeKm, perigeeKm } = getOrbitalAltitudesFromTle(tleLine2);
+  const { apogeeKm, perigeeKm } = getOrbitalAltitudesFromOmm(omm);
 
   return {
     apogeeKm,
@@ -66,7 +64,7 @@ export function getTelemetry(satrec: SatRec, tleLine2: string, date: Date): Sate
 
 export function getEcfPosition(satrec: SatRec, date: Date): Vector3 | null {
   const result = propagate(satrec, date);
-  if (!result?.position || result.position === true) {
+  if (!result?.position) {
     return null;
   }
 

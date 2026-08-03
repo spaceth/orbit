@@ -11,13 +11,13 @@ import {
 import type {
   FutureSatelliteRecord,
   LegacySatelliteRecord,
+  OmmData,
   SatelliteRecord,
   SatelliteTelemetry,
-  TleData,
 } from "@/types/satellite";
 
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { formatLaunchDate, formatTleAge } from "@/lib/operation-time";
+import { formatLaunchDate, formatOmmAge } from "@/lib/operation-time";
 import { MOBILE_MEDIA_QUERY } from "@/lib/mobile-layout";
 import { formatTemplate, getPurposeLabel } from "@/lib/localization";
 import {
@@ -46,7 +46,7 @@ interface SatellitePanelProps {
   activeSatellite: SatelliteRecord | null;
   activeLegacySatellite: LegacySatelliteRecord | null;
   activeFutureSatellite: FutureSatelliteRecord | null;
-  activeTle: TleData | null;
+  activeOmm: OmmData | null;
   activeTelemetry: SatelliteTelemetry | null;
   onSelectNoradId: (noradId: number) => void;
   onSelectLegacyId: (id: string) => void;
@@ -58,7 +58,7 @@ interface SatellitePanelProps {
   onMobileReadingModeChange: (readingMode: boolean) => void;
   loading: boolean;
   loadError: boolean;
-  onRetryLoadTles: () => void;
+  onRetryLoadOmms: () => void;
 }
 
 function ChevronIcon({ expanded }: { expanded: boolean }) {
@@ -96,7 +96,7 @@ export function SatellitePanel({
   activeSatellite,
   activeLegacySatellite,
   activeFutureSatellite,
-  activeTle,
+  activeOmm,
   activeTelemetry,
   onSelectNoradId,
   onSelectLegacyId,
@@ -108,7 +108,7 @@ export function SatellitePanel({
   onMobileReadingModeChange,
   loading,
   loadError,
-  onRetryLoadTles,
+  onRetryLoadOmms,
 }: SatellitePanelProps) {
   const { locale, ui } = useLocale();
   const availableSet = new Set(availableNoradIds);
@@ -145,7 +145,7 @@ export function SatellitePanel({
     !loadError &&
     (activeFutureSatellite !== null ||
       activeLegacySatellite !== null ||
-      (activeSatellite !== null && activeTle !== null));
+      (activeSatellite !== null && activeOmm !== null));
 
   const updateReadingMode = useCallback(
     (next: boolean) => {
@@ -402,14 +402,14 @@ export function SatellitePanel({
 
       {loadError ? (
         <div className="mt-4 space-y-2">
-          <p className="text-sm text-error">{ui.tleLoadError}</p>
+          <p className="text-sm text-error">{ui.ommLoadError}</p>
           <button
             type="button"
-            onClick={onRetryLoadTles}
+            onClick={onRetryLoadOmms}
             disabled={loading}
             className="text-sm text-foreground underline decoration-muted underline-offset-2 transition-opacity hover:opacity-70 disabled:opacity-50"
           >
-            {ui.tleRetry}
+            {ui.ommRetry}
           </button>
         </div>
       ) : null}
@@ -492,7 +492,7 @@ export function SatellitePanel({
           ) : null}
 
           {activeSatellite &&
-          activeTle &&
+          activeOmm &&
           !activeFutureSatellite &&
           !activeLegacySatellite ? (
             <>
@@ -506,9 +506,9 @@ export function SatellitePanel({
                 {getPurposeLabel(locale, activeSatellite.purpose)}
               </p>
               <p className="mt-1 text-sm text-muted">
-                {formatTemplate(ui.noradTle, {
-                  noradId: activeTle.noradId,
-                  age: formatTleAge(activeTle.date, ui),
+                {formatTemplate(ui.noradOmm, {
+                  noradId: activeOmm.noradId,
+                  age: formatOmmAge(activeOmm.epoch, ui),
                 })}
               </p>
 

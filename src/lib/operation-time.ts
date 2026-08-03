@@ -60,11 +60,19 @@ export function formatLaunchDate(date: string, locale: Locale): string {
   });
 }
 
-export function formatTleAge(date: string, ui: UiText): string {
-  const epoch = new Date(date);
-  const hours = Math.max(0, (Date.now() - epoch.getTime()) / (1000 * 60 * 60));
-  if (hours < 24) {
-    return ui.tleAgeHours.replace("{hours}", hours.toFixed(1));
+/** Parse OMM EPOCH (UTC). CelesTrak often omits a trailing `Z`. */
+function parseOmmEpoch(epoch: string): Date {
+  if (/[zZ]|[+-]\d{2}:?\d{2}$/.test(epoch)) {
+    return new Date(epoch);
   }
-  return ui.tleAgeDays.replace("{days}", (hours / 24).toFixed(1));
+  return new Date(`${epoch}Z`);
+}
+
+export function formatOmmAge(epoch: string, ui: UiText): string {
+  const date = parseOmmEpoch(epoch);
+  const hours = Math.max(0, (Date.now() - date.getTime()) / (1000 * 60 * 60));
+  if (hours < 24) {
+    return ui.ommAgeHours.replace("{hours}", hours.toFixed(1));
+  }
+  return ui.ommAgeDays.replace("{days}", (hours / 24).toFixed(1));
 }

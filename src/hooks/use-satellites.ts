@@ -3,26 +3,26 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { SATELLITES, getSatelliteByNoradId } from "@/lib/satellites";
-import { getAllFallbackTles, getFallbackTle } from "@/lib/tle-fallback";
+import { getAllFallbackOmms, getFallbackOmm } from "@/lib/omm-fallback";
 import { getFutureSatelliteById } from "@/lib/future-satellites";
 import { getLegacySatelliteById } from "@/lib/legacy-satellites";
-import type { SatelliteTelemetry, TleData } from "@/types/satellite";
+import type { OmmData, SatelliteTelemetry } from "@/types/satellite";
 
-async function fetchTleForSatellite(noradId: number): Promise<TleData | null> {
+async function fetchOmmForSatellite(noradId: number): Promise<OmmData | null> {
   try {
-    const response = await fetch(`/api/tle/${noradId}`);
+    const response = await fetch(`/api/omm/${noradId}`);
     if (response.ok) {
-      return (await response.json()) as TleData;
+      return (await response.json()) as OmmData;
     }
   } catch {
     // Fall through to bundled fallback below.
   }
 
-  return getFallbackTle(noradId) ?? null;
+  return getFallbackOmm(noradId) ?? null;
 }
 
 export function useSatellites() {
-  const [tles, setTles] = useState<TleData[]>([]);
+  const [omms, setOmms] = useState<OmmData[]>([]);
   const [telemetryById, setTelemetryById] = useState<Record<number, SatelliteTelemetry>>({});
   const [activeNoradId, setActiveNoradId] = useState<number | null>(null);
   const [activeLegacyId, setActiveLegacyId] = useState<string | null>(null);
@@ -35,44 +35,44 @@ export function useSatellites() {
   const [loadError, setLoadError] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
 
-  const retryLoadTles = useCallback(() => {
+  const retryLoadOmms = useCallback(() => {
     setLoadAttempt((attempt) => attempt + 1);
   }, []);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadTles() {
+    async function loadOmms() {
       setLoading(true);
       setLoadError(false);
 
       try {
         const results = await Promise.all(
-          SATELLITES.map((satellite) => fetchTleForSatellite(satellite.noradId)),
+          SATELLITES.map((satellite) => fetchOmmForSatellite(satellite.noradId)),
         );
 
-        const data = results.filter((value): value is TleData => value !== null);
+        const data = results.filter((value): value is OmmData => value !== null);
 
         if (!cancelled) {
           if (data.length === 0) {
-            const fallbackTles = getAllFallbackTles();
-            if (fallbackTles.length > 0) {
-              setTles(fallbackTles);
+            const fallbackOmms = getAllFallbackOmms();
+            if (fallbackOmms.length > 0) {
+              setOmms(fallbackOmms);
               return;
             }
-            setTles([]);
+            setOmms([]);
             setLoadError(true);
             return;
           }
-          setTles(data);
+          setOmms(data);
         }
       } catch {
         if (!cancelled) {
-          const fallbackTles = getAllFallbackTles();
-          if (fallbackTles.length > 0) {
-            setTles(fallbackTles);
+          const fallbackOmms = getAllFallbackOmms();
+          if (fallbackOmms.length > 0) {
+            setOmms(fallbackOmms);
           } else {
-            setTles([]);
+            setOmms([]);
             setLoadError(true);
           }
         }
@@ -83,7 +83,7 @@ export function useSatellites() {
       }
     }
 
-    void loadTles();
+    void loadOmms();
 
     return () => {
       cancelled = true;
@@ -148,12 +148,12 @@ export function useSatellites() {
     [activeNoradId],
   );
 
-  const activeTle = useMemo(
+  const activeOmm = useMemo(
     () =>
       activeNoradId === null
         ? null
-        : (tles.find((tle) => tle.noradId === activeNoradId) ?? null),
-    [tles, activeNoradId],
+        : (omms.find((omm) => omm.noradId === activeNoradId) ?? null),
+    [omms, activeNoradId],
   );
 
   const activeTelemetry = useMemo(
@@ -171,13 +171,13 @@ export function useSatellites() {
     [activeFutureId],
   );
 
-  const availableNoradIds = useMemo(() => tles.map((tle) => tle.noradId), [tles]);
+  const availableNoradIds = useMemo(() => omms.map((omm) => omm.noradId), [omms]);
 
   return {
-    tles,
+    omms,
     loading,
     loadError,
-    retryLoadTles,
+    retryLoadOmms,
     activeNoradId,
     activeLegacyId,
     activeFutureId,
@@ -188,7 +188,7 @@ export function useSatellites() {
     activeSatellite,
     activeLegacySatellite,
     activeFutureSatellite,
-    activeTle,
+    activeOmm,
     activeTelemetry,
     availableNoradIds,
     hiddenNoradIds,

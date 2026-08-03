@@ -1,9 +1,22 @@
-export interface TleData {
+/** App-normalized Orbit Mean-Elements Message (CCSDS OMM / CelesTrak GP JSON). */
+export interface OmmData {
   noradId: number;
   name: string;
-  line1: string;
-  line2: string;
-  date: string;
+  objectId?: string;
+  epoch: string;
+  meanMotion: number;
+  eccentricity: number;
+  inclination: number;
+  raOfAscNode: number;
+  argOfPericenter: number;
+  meanAnomaly: number;
+  bstar: number;
+  meanMotionDot: number;
+  meanMotionDdot: number;
+  ephemerisType: number;
+  classificationType: string;
+  elementSetNo: number;
+  revAtEpoch: number;
 }
 
 export interface SatelliteTelemetry {

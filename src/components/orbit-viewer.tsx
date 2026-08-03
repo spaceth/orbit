@@ -36,10 +36,10 @@ export function OrbitViewer() {
     setEarthFocusRequest((request) => request + 1);
   }, []);
   const {
-    tles,
+    omms,
     loading,
     loadError,
-    retryLoadTles,
+    retryLoadOmms,
     activeNoradId,
     activeLegacyId,
     activeFutureId,
@@ -49,7 +49,7 @@ export function OrbitViewer() {
     activeSatellite,
     activeLegacySatellite,
     activeFutureSatellite,
-    activeTle,
+    activeOmm,
     activeTelemetry,
     availableNoradIds,
     hiddenNoradIds,
@@ -136,7 +136,7 @@ export function OrbitViewer() {
           activeSatellite={activeSatellite}
           activeLegacySatellite={activeLegacySatellite}
           activeFutureSatellite={activeFutureSatellite}
-          activeTle={activeTle}
+          activeOmm={activeOmm}
           activeTelemetry={activeTelemetry}
           onSelectNoradId={handleSelectNoradId}
           onSelectLegacyId={handleSelectLegacyId}
@@ -148,12 +148,12 @@ export function OrbitViewer() {
           onMobileReadingModeChange={handleMobileReadingModeChange}
           loading={loading}
           loadError={loadError}
-          onRetryLoadTles={retryLoadTles}
+          onRetryLoadOmms={retryLoadOmms}
         />
       </div>
       <div className="absolute inset-0">
         <GlobeScene
-          tles={tles}
+          omms={omms}
           themeColors={themeColors}
           hiddenNoradIds={hiddenNoradIds}
           activeNoradId={activeNoradId}

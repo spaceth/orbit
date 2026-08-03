@@ -7,7 +7,7 @@ import type { Mesh, PerspectiveCamera } from "three";
 import { getEcfPosition, getTelemetry } from "@/lib/orbit";
 import type { SatRec } from "@/lib/orbit";
 import { getWorldScaleForPixelDiameter } from "@/lib/screen-scale";
-import type { SatelliteTelemetry } from "@/types/satellite";
+import type { OmmData, SatelliteTelemetry } from "@/types/satellite";
 
 const SELECTED_MARKER_PIXEL_SIZE = 7;
 const UNSELECTED_MARKER_PIXEL_SIZE = 3;
@@ -16,7 +16,7 @@ const MARKER_GEOMETRY_DIAMETER = 1;
 interface SatelliteMarkerProps {
   noradId: number;
   satrec: SatRec;
-  tleLine2: string;
+  omm: Pick<OmmData, "eccentricity" | "meanMotion">;
   color: string;
   isHighlighted: boolean;
   isActive: boolean;
@@ -29,7 +29,7 @@ interface SatelliteMarkerProps {
 export function SatelliteMarker({
   noradId,
   satrec,
-  tleLine2,
+  omm,
   color,
   isHighlighted,
   isActive,
@@ -72,7 +72,7 @@ export function SatelliteMarker({
     }
 
     if (now - lastUpdateRef.current > 0.1) {
-      const telemetry = getTelemetry(satrec, tleLine2, date);
+      const telemetry = getTelemetry(satrec, omm, date);
       if (telemetry) {
         onTelemetryUpdate(noradId, telemetry);
         lastUpdateRef.current = now;

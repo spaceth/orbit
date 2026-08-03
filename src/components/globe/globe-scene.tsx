@@ -3,9 +3,9 @@
 import { Canvas } from "@react-three/fiber";
 import { useMemo } from "react";
 
-import { parseTle } from "@/lib/orbit";
+import { parseOmm } from "@/lib/orbit";
 import type { ThemeColors } from "@/lib/theme";
-import type { SatelliteTelemetry, TleData } from "@/types/satellite";
+import type { OmmData, SatelliteTelemetry } from "@/types/satellite";
 
 import { CameraController } from "./camera-controller";
 import { CameraViewportOffset } from "./camera-viewport-offset";
@@ -14,7 +14,7 @@ import { OrbitTrail } from "./orbit-trail";
 import { SatelliteMarker } from "./satellite-marker";
 
 interface GlobeSceneProps {
-  tles: TleData[];
+  omms: OmmData[];
   themeColors: ThemeColors;
   hiddenNoradIds: ReadonlySet<number>;
   activeNoradId: number | null;
@@ -30,7 +30,7 @@ interface GlobeSceneProps {
 }
 
 function SceneContent({
-  tles,
+  omms,
   themeColors,
   hiddenNoradIds,
   activeNoradId,
@@ -45,12 +45,12 @@ function SceneContent({
 }: GlobeSceneProps) {
   const satellites = useMemo(
     () =>
-      tles.map((tle) => ({
-        noradId: tle.noradId,
-        satrec: parseTle(tle),
-        tleLine2: tle.line2,
+      omms.map((omm) => ({
+        noradId: omm.noradId,
+        satrec: parseOmm(omm),
+        omm,
       })),
-    [tles],
+    [omms],
   );
 
   return (
@@ -84,7 +84,7 @@ function SceneContent({
             <SatelliteMarker
               noradId={satellite.noradId}
               satrec={satellite.satrec}
-              tleLine2={satellite.tleLine2}
+              omm={satellite.omm}
               color={themeColors.marker}
               isHighlighted={isHighlighted}
               isActive={isActive}

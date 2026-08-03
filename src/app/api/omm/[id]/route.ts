@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { isAllowedNoradId } from "@/lib/satellites";
-import { getFallbackTle } from "@/lib/tle-fallback";
-import { fetchTleFromApi } from "@/lib/tle";
+import { getFallbackOmm } from "@/lib/omm-fallback";
+import { fetchOmmFromCelestrak } from "@/lib/omm";
 
 export const revalidate = 3600;
 
@@ -18,13 +18,13 @@ export async function GET(
   }
 
   try {
-    const tle = await fetchTleFromApi(noradId);
-    return NextResponse.json(tle);
+    const omm = await fetchOmmFromCelestrak(noradId);
+    return NextResponse.json(omm);
   } catch {
-    const fallback = getFallbackTle(noradId);
+    const fallback = getFallbackOmm(noradId);
     if (fallback) {
       return NextResponse.json(fallback);
     }
-    return NextResponse.json({ error: "Failed to fetch TLE" }, { status: 503 });
+    return NextResponse.json({ error: "Failed to fetch OMM" }, { status: 503 });
   }
 }
