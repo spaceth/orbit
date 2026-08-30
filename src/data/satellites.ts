@@ -19,6 +19,16 @@ export const SATELLITES = [
     operator: "GISTDA",
   },
   {
+    id: "gistda-cubesat-1",
+    noradId: 100466,
+    name: "GISTDA CubeSat-1",
+    purpose: "Earth Observation",
+    launchDate: "2026-08-25",
+    launchVehicle: "Long March 6C",
+    operator: "GISTDA",
+    manufacturer: "GalaxySpace",
+  },
+  {
     id: "knacksat-2",
     noradId: 67683,
     name: "KnackSat-2",
