@@ -103,13 +103,17 @@ Orbit เริ่มต้นจากดาวเทียมไทยที�
 | Satellite         | NORAD ID | Type              |
 | ----------------- | -------: | ----------------- |
 | THEOS-2           |    58016 | Earth Observation |
-| GISTDA CubeSat-1  |   100466 | Earth Observation |
+| GISTDA CubeSat-1  |   100471 | Earth Observation |
 | KnackSat-2        |    67683 | Education         |
 | THEOS             |    33396 | Earth Observation |
 | Thaicom 4         |    28786 | Communication     |
 | Thaicom 6         |    39500 | Communication     |
 | Thaicom 7         |    40141 | Communication     |
 | Thaicom 8         |    41552 | Communication     |
+
+### การเปลี่ยนหมายเลขแคตตาล็อก
+
+- **2026-09-08** — อัปเดต NORAD ID ของ GISTDA CubeSat-1 จาก **100466** (`2026-195B` / OBJECT B) เป็น **100471** (`2026-195G` / OBJECT G) ตามการระบุล่าสุดในแคตตาล็อกสาธารณะของภารกิจปล่อยชุดนี้
 
 ### ดาวเทียมในอดีต (Legacy)
 

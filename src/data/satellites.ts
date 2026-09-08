@@ -20,7 +20,7 @@ export const SATELLITES = [
   },
   {
     id: "gistda-cubesat-1",
-    noradId: 100466,
+    noradId: 100471,
     name: "GISTDA CubeSat-1",
     purpose: "Earth Observation",
     launchDate: "2026-08-25",

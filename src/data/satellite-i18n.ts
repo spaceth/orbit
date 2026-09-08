@@ -18,9 +18,9 @@ export const SATELLITE_I18N: Record<Locale, Record<number, SatelliteLocalizedCon
       description:
         "THEOS-2 is Thailand’s high-resolution Earth observation satellite, developed with Airbus and operated by GISTDA. It provides satellite imagery for mapping, agriculture, forestry, water management, urban planning, and disaster response.",
     },
-    100466: {
+    100471: {
       description:
-        "GISTDA CubeSat-1 (Lingzhi-09) is a 3U Earth observation CubeSat for Thailand’s Geo-Informatics and Space Technology Development Agency, built by GalaxySpace. Launched on a Long March 6C from Taiyuan on 25 August 2026 (COSPAR 2026-195B), it collects remote-sensing data for land use, agriculture, and environmental monitoring, and supports university training in satellite design, TT&C, and remote sensing. The public catalog still lists this NORAD ID as OBJECT B pending official naming.",
+        "GISTDA CubeSat-1 (Lingzhi-09) is a 3U Earth observation CubeSat for Thailand’s Geo-Informatics and Space Technology Development Agency, built by GalaxySpace. Launched on a Long March 6C from Taiyuan on 25 August 2026 (COSPAR 2026-195G), it collects remote-sensing data for land use, agriculture, and environmental monitoring, and supports university training in satellite design, TT&C, and remote sensing. The public catalog still lists this NORAD ID as OBJECT G pending official naming.",
     },
     67683: {
       description:
@@ -52,9 +52,9 @@ export const SATELLITE_I18N: Record<Locale, Record<number, SatelliteLocalizedCon
       description:
         "THEOS-2 เป็นดาวเทียมสำรวจโลกความละเอียดสูงของไทย พัฒนาร่วมกับ Airbus และดำเนินงานโดย GISTDA ใช้ถ่ายภาพดาวเทียมเพื่อการทำแผนที่ เกษตร ป่าไม้ การจัดการน้ำ ผังเมือง และการรับมือภัยพิบัติ",
     },
-    100466: {
+    100471: {
       description:
-        "GISTDA CubeSat-1 (Lingzhi-09) เป็น CubeSat สำรวจโลกขนาด 3U สำหรับสำนักงานพัฒนาเทคโนโลยีอวกาศและภูมิสารสนเทศ (GISTDA) สร้างโดย GalaxySpace ปล่อยด้วยจรวด Long March 6C จากไทหยวนเมื่อ 25 สิงหาคม 2026 (COSPAR 2026-195B) เพื่อเก็บข้อมูลรีโมตเซนซิ่งด้านที่ดิน เกษตร และสิ่งแวดล้อม รวมถึงสนับสนุนการเรียนการสอนด้านออกแบบดาวเทียม TT&C และรีโมตเซนซิ่งในมหาวิทยาลัยไทย แคตตาล็อกสาธารณะยังระบุ NORAD นี้เป็น OBJECT B จนกว่าจะมีการตั้งชื่ออย่างเป็นทางการ",
+        "GISTDA CubeSat-1 (Lingzhi-09) เป็น CubeSat สำรวจโลกขนาด 3U สำหรับสำนักงานพัฒนาเทคโนโลยีอวกาศและภูมิสารสนเทศ (GISTDA) สร้างโดย GalaxySpace ปล่อยด้วยจรวด Long March 6C จากไทหยวนเมื่อ 25 สิงหาคม 2026 (COSPAR 2026-195G) เพื่อเก็บข้อมูลรีโมตเซนซิ่งด้านที่ดิน เกษตร และสิ่งแวดล้อม รวมถึงสนับสนุนการเรียนการสอนด้านออกแบบดาวเทียม TT&C และรีโมตเซนซิ่งในมหาวิทยาลัยไทย แคตตาล็อกสาธารณะยังระบุ NORAD นี้เป็น OBJECT G จนกว่าจะมีการตั้งชื่ออย่างเป็นทางการ",
     },
     67683: {
       description:

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 /** Keep in sync with `src/data/satellites.ts`. */
-const NORAD_IDS = [58016, 100466, 67683, 33396, 28786, 39500, 40141, 41552];
+const NORAD_IDS = [58016, 100471, 67683, 33396, 28786, 39500, 40141, 41552];
 
 const CELESTRAK_GP_URL = "https://celestrak.org/NORAD/elements/gp.php";
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
