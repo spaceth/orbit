@@ -20,7 +20,7 @@ export const SATELLITE_I18N: Record<Locale, Record<number, SatelliteLocalizedCon
     },
     100471: {
       description:
-        "GISTDA CubeSat-1 (Lingzhi-09) is a 3U Earth observation CubeSat for Thailand’s Geo-Informatics and Space Technology Development Agency, built by GalaxySpace. Launched on a Long March 6C from Taiyuan on 25 August 2026 (COSPAR 2026-195G), it collects remote-sensing data for land use, agriculture, and environmental monitoring, and supports university training in satellite design, TT&C, and remote sensing. The public catalog still lists this NORAD ID as OBJECT G pending official naming.",
+        "GISTDA CubeSat-1 is a Thai Earth observation CubeSat operated by GISTDA and built by GalaxySpace. Launched in 2026, it collects imagery for land use, agriculture, and environmental monitoring, and supports university training in satellite design and remote sensing.",
     },
     67683: {
       description:
@@ -54,7 +54,7 @@ export const SATELLITE_I18N: Record<Locale, Record<number, SatelliteLocalizedCon
     },
     100471: {
       description:
-        "GISTDA CubeSat-1 (Lingzhi-09) เป็น CubeSat สำรวจโลกขนาด 3U สำหรับสำนักงานพัฒนาเทคโนโลยีอวกาศและภูมิสารสนเทศ (GISTDA) สร้างโดย GalaxySpace ปล่อยด้วยจรวด Long March 6C จากไทหยวนเมื่อ 25 สิงหาคม 2026 (COSPAR 2026-195G) เพื่อเก็บข้อมูลรีโมตเซนซิ่งด้านที่ดิน เกษตร และสิ่งแวดล้อม รวมถึงสนับสนุนการเรียนการสอนด้านออกแบบดาวเทียม TT&C และรีโมตเซนซิ่งในมหาวิทยาลัยไทย แคตตาล็อกสาธารณะยังระบุ NORAD นี้เป็น OBJECT G จนกว่าจะมีการตั้งชื่ออย่างเป็นทางการ",
+        "GISTDA CubeSat-1 เป็นดาวเทียมสำรวจโลกขนาด CubeSat ของไทย ดำเนินงานโดย GISTDA และสร้างโดย GalaxySpace ปล่อยขึ้นสู่วงโคจรในปี 2026 เพื่อเก็บข้อมูลภาพถ่ายด้านที่ดิน เกษตร และสิ่งแวดล้อม รวมถึงสนับสนุนการเรียนการสอนด้านออกแบบดาวเทียมและรีโมตเซนซิ่ง",
     },
     67683: {
       description:

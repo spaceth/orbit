@@ -112,8 +112,9 @@ Orbit starts with Thai satellites that have NORAD IDs and available OMM data, in
 | Thaicom 7         |    40141 | Communication     |
 | Thaicom 8         |    41552 | Communication     |
 
-### Catalog ID changes
+### Changelog
 
+- **2026-09-10** — According to a post on the GISTDA website dated 10 September 2026, GISTDA officially confirmed GISTDA CubeSat-1 (Cube-1). Tracking continues with the same NORAD ID **100471**.
 - **2026-09-08** — GISTDA CubeSat-1 NORAD ID updated from **100466** (`2026-195B` / OBJECT B) to **100471** (`2026-195G` / OBJECT G) based on the latest public catalog assignment for that launch.
 
 ### Legacy
