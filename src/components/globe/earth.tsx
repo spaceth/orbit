@@ -2,9 +2,10 @@
 
 import { type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useMemo, useState } from "react";
+import { Color } from "three";
 
 import {
-  buildLandMapTexture,
+  buildLandMaskTexture,
   getEarthMapSize,
   type EarthMapSize,
   type GeoJsonFeatureCollection,
@@ -12,6 +13,26 @@ import {
 import type { ThemeColors } from "@/lib/theme";
 
 const EARTH_GEOJSON_URL = "/data/countries-50m.json";
+const vertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+const fragmentShader = `
+  uniform sampler2D landMask;
+  uniform vec3 oceanColor;
+  uniform vec3 landColor;
+  uniform vec3 borderColor;
+  varying vec2 vUv;
+  void main() {
+    vec2 mask = texture2D(landMask, vUv).rg;
+    vec3 surface = mix(oceanColor, landColor, min(1.0, mask.r + mask.g));
+    gl_FragColor = vec4(mix(surface, borderColor, mask.g), 1.0);
+    #include <colorspace_fragment>
+  }
+`;
 
 interface EarthProps {
   colors: ThemeColors;
@@ -44,25 +65,25 @@ export function Earth({ colors, onDoubleClick }: EarthProps) {
     };
   }, []);
 
-  const mapTexture = useMemo(() => {
+  const landMask = useMemo(() => {
     if (!geoData) {
       return null;
     }
-    return buildLandMapTexture(
-      geoData,
-      {
-        ocean: colors.earthOcean,
-        land: colors.earthLand,
-      },
-      mapSize,
-    );
-  }, [geoData, colors.earthOcean, colors.earthLand, mapSize]);
+    return buildLandMaskTexture(geoData, mapSize);
+  }, [geoData, mapSize]);
+
+  const uniforms = useMemo(() => ({
+    landMask: { value: landMask },
+    oceanColor: { value: new Color(colors.earthOcean) },
+    landColor: { value: new Color(colors.earthLand) },
+    borderColor: { value: new Color(colors.earthLand).lerp(new Color(colors.foreground), 0.22) },
+  }), [landMask, colors.earthOcean, colors.earthLand, colors.foreground]);
 
   useEffect(() => {
     return () => {
-      mapTexture?.dispose();
+      landMask?.dispose();
     };
-  }, [mapTexture]);
+  }, [landMask]);
 
   const sphereSegments = mapSize.width >= 4096 ? 256 : 128;
 
@@ -74,12 +95,16 @@ export function Earth({ colors, onDoubleClick }: EarthProps) {
       }}
     >
       <sphereGeometry args={[1, sphereSegments, sphereSegments]} />
-      <meshBasicMaterial
-        key={mapTexture?.uuid ?? colors.earthOcean}
-        map={mapTexture ?? undefined}
-        color={mapTexture ? "#ffffff" : colors.earthOcean}
-        toneMapped={false}
-      />
+      {landMask ? (
+        <shaderMaterial
+          uniforms={uniforms}
+          vertexShader={vertexShader}
+          fragmentShader={fragmentShader}
+          toneMapped={false}
+        />
+      ) : (
+        <meshBasicMaterial color={colors.earthOcean} toneMapped={false} />
+      )}
     </mesh>
   );
 }
