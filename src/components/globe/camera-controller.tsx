@@ -17,6 +17,7 @@ interface CameraControllerProps {
 
 const EARTH_CENTER = new Vector3(0, 0, 0);
 const DEFAULT_CAMERA_DISTANCE = 2.8;
+const MIN_CAMERA_RADIUS = 1.15;
 
 function getFocusDistance(satRadius: number): number {
   if (satRadius > 5) {
@@ -72,6 +73,16 @@ export function CameraController({
       return;
     }
 
+    const updateControls = () => {
+      controls.update();
+      if (camera.position.lengthSq() < MIN_CAMERA_RADIUS ** 2) {
+        camera.position.setLength(MIN_CAMERA_RADIUS);
+        if (camera.position.lengthSq() === 0) {
+          camera.position.set(0, 0, MIN_CAMERA_RADIUS);
+        }
+      }
+    };
+
     const shouldFocusEarth = activeNoradId === null || earthFocused;
 
     if (shouldFocusEarth) {
@@ -99,19 +110,19 @@ export function CameraController({
         }
       }
 
-      controls.update();
+      updateControls();
       return;
     }
 
     const satellite = satellites.find((entry) => entry.noradId === activeNoradId);
     if (!satellite) {
-      controls.update();
+      updateControls();
       return;
     }
 
     const position = getEcfPosition(satellite.satrec, new Date());
     if (!position) {
-      controls.update();
+      updateControls();
       return;
     }
 
@@ -143,14 +154,14 @@ export function CameraController({
       lastSatPosition.current.copy(position);
     }
 
-    controls.update();
+    updateControls();
   });
 
   return (
     <OrbitControls
       ref={controlsRef}
       enablePan={false}
-      minDistance={0.08}
+      minDistance={activeNoradId === null || earthFocused ? MIN_CAMERA_RADIUS : 0.08}
       maxDistance={90}
       enableDamping
       dampingFactor={0.05}

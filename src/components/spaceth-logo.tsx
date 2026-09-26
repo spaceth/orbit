@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
@@ -19,7 +20,7 @@ export function SpaceTHLogo() {
         rel="noopener noreferrer"
         className="transition-opacity duration-300"
       >
-        <img src={logoSrc} alt="SpaceTH" className="h-4 w-auto sm:h-[20px]" />
+        <Image src={logoSrc} alt="SpaceTH" width={632} height={75} loading="eager" className="h-4 w-auto sm:h-[20px]" />
       </a>
     </div>
   );

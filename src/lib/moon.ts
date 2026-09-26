@@ -89,7 +89,7 @@ export function getMoonEcfPosition(date: Date): Vector3 {
     10980 * Math.sin(mp - 2 * f);
 
   // Latitude periodic terms (arcseconds)
-  let sumB =
+  const sumB =
     5128122 * Math.sin(f) +
     280602 * Math.sin(mp + f) +
     277693 * Math.sin(mp - f) +
@@ -103,7 +103,7 @@ export function getMoonEcfPosition(date: Date): Vector3 {
     8216 * E * Math.sin(2 * d - m - f);
 
   // Distance periodic terms (kilometers)
-  let sumR =
+  const sumR =
     -20905355 * Math.cos(mp) -
     3699111 * Math.cos(2 * d - mp) -
     2955968 * Math.cos(2 * d) -

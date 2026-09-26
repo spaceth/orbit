@@ -28,26 +28,26 @@ interface LocaleContextValue {
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 function readStoredLocale(): Locale {
-  if (typeof window === "undefined") {
-    return DEFAULT_LOCALE;
-  }
-
   const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
   return stored && isLocale(stored) ? stored : DEFAULT_LOCALE;
 }
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() =>
-    typeof window === "undefined" ? DEFAULT_LOCALE : readStoredLocale(),
-  );
+  const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
+
+  useEffect(() => {
+    // The server and first client render must use the same locale.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocaleState(readStoredLocale());
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
   }, [locale]);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, next);
   }, []);
 
   const value = useMemo(

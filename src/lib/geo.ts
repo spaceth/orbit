@@ -2,7 +2,6 @@ import {
   CanvasTexture,
   LinearFilter,
   LinearMipmapLinearFilter,
-  SRGBColorSpace,
 } from "three";
 
 type GeoJsonPosition = [number, number] | [number, number, number];
@@ -17,11 +16,6 @@ export interface GeoJsonFeatureCollection {
       coordinates: unknown;
     };
   }>;
-}
-
-export interface EarthMapColors {
-  ocean: string;
-  land: string;
 }
 
 export interface EarthMapSize {
@@ -77,7 +71,7 @@ function isMultiPolygon(value: unknown): value is GeoJsonMultiPolygon {
   return Array.isArray(value) && value.length > 0 && isPolygon(value[0]);
 }
 
-function drawPolygon(
+function tracePolygon(
   context: CanvasRenderingContext2D,
   polygon: GeoJsonPolygon,
   width: number,
@@ -97,13 +91,11 @@ function drawPolygon(
     }
     context.closePath();
   }
-  context.fill("evenodd");
 }
 
-/** Vector GeoJSON → high-res equirectangular land mask (no border strokes). */
-export function buildLandMapTexture(
+/** Vector GeoJSON → reusable equirectangular land mask. */
+export function buildLandMaskTexture(
   data: GeoJsonFeatureCollection,
-  colors: EarthMapColors,
   size: EarthMapSize = getEarthMapSize(),
 ): CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -116,26 +108,37 @@ export function buildLandMapTexture(
   }
 
   context.imageSmoothingEnabled = false;
-  context.fillStyle = colors.ocean;
+  context.fillStyle = "#000000";
   context.fillRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = colors.land;
+  const polygons: GeoJsonPolygon[] = [];
 
   for (const feature of data.features) {
     const { geometry } = feature;
 
     if (geometry.type === "Polygon" && isPolygon(geometry.coordinates)) {
-      drawPolygon(context, geometry.coordinates, canvas.width, canvas.height);
+      polygons.push(geometry.coordinates);
     }
 
     if (geometry.type === "MultiPolygon" && isMultiPolygon(geometry.coordinates)) {
-      for (const polygon of geometry.coordinates) {
-        drawPolygon(context, polygon, canvas.width, canvas.height);
-      }
+      polygons.push(...geometry.coordinates);
     }
   }
 
+  context.fillStyle = "#ff0000";
+  for (const polygon of polygons) {
+    tracePolygon(context, polygon, canvas.width, canvas.height);
+    context.fill("evenodd");
+  }
+
+  context.strokeStyle = "#00ff00";
+  context.lineWidth = 1;
+  context.lineJoin = "round";
+  for (const polygon of polygons) {
+    tracePolygon(context, polygon, canvas.width, canvas.height);
+    context.stroke();
+  }
+
   const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
   texture.minFilter = LinearMipmapLinearFilter;
   texture.magFilter = LinearFilter;
   texture.generateMipmaps = true;
