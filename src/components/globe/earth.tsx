@@ -1,17 +1,13 @@
 "use client";
 
 import { type ThreeEvent } from "@react-three/fiber";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import type { BufferGeometry } from "three";
 
-import {
-  buildLandMapTexture,
-  getEarthMapSize,
-  type EarthMapSize,
-  type GeoJsonFeatureCollection,
-} from "@/lib/geo";
+import { decodeLandMesh } from "@/lib/geo";
 import type { ThemeColors } from "@/lib/theme";
 
-const EARTH_GEOJSON_URL = "/data/countries-50m.json";
+const LAND_MESH_URL = "/data/land-mesh.bin";
 
 interface EarthProps {
   colors: ThemeColors;
@@ -19,22 +15,26 @@ interface EarthProps {
 }
 
 export function Earth({ colors, onDoubleClick }: EarthProps) {
-  const [geoData, setGeoData] = useState<GeoJsonFeatureCollection | null>(null);
-  const [mapSize] = useState<EarthMapSize>(() => getEarthMapSize());
+  const [landGeometry, setLandGeometry] = useState<BufferGeometry | null>(null);
+  const [oceanRadius, setOceanRadius] = useState(1);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadLand() {
-      const response = await fetch(EARTH_GEOJSON_URL);
+      const response = await fetch(LAND_MESH_URL);
       if (!response.ok) {
         return;
       }
 
-      const data = await response.json();
-      if (!cancelled) {
-        setGeoData(data as GeoJsonFeatureCollection);
+      const mesh = decodeLandMesh(await response.arrayBuffer());
+      if (cancelled) {
+        mesh.geometry.dispose();
+        return;
       }
+
+      setLandGeometry(mesh.geometry);
+      setOceanRadius(mesh.oceanRadius);
     }
 
     void loadLand();
@@ -44,42 +44,28 @@ export function Earth({ colors, onDoubleClick }: EarthProps) {
     };
   }, []);
 
-  const mapTexture = useMemo(() => {
-    if (!geoData) {
-      return null;
-    }
-    return buildLandMapTexture(
-      geoData,
-      {
-        ocean: colors.earthOcean,
-        land: colors.earthLand,
-      },
-      mapSize,
-    );
-  }, [geoData, colors.earthOcean, colors.earthLand, mapSize]);
-
   useEffect(() => {
     return () => {
-      mapTexture?.dispose();
+      landGeometry?.dispose();
     };
-  }, [mapTexture]);
+  }, [landGeometry]);
 
-  const sphereSegments = mapSize.width >= 4096 ? 256 : 128;
+  const handleDoubleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    onDoubleClick?.();
+  };
 
   return (
-    <mesh
-      onDoubleClick={(event: ThreeEvent<MouseEvent>) => {
-        event.stopPropagation();
-        onDoubleClick?.();
-      }}
-    >
-      <sphereGeometry args={[1, sphereSegments, sphereSegments]} />
-      <meshBasicMaterial
-        key={mapTexture?.uuid ?? colors.earthOcean}
-        map={mapTexture ?? undefined}
-        color={mapTexture ? "#ffffff" : colors.earthOcean}
-        toneMapped={false}
-      />
-    </mesh>
+    <group>
+      <mesh onDoubleClick={handleDoubleClick}>
+        <sphereGeometry args={[oceanRadius, 128, 128]} />
+        <meshBasicMaterial color={colors.earthOcean} toneMapped={false} />
+      </mesh>
+      {landGeometry ? (
+        <mesh geometry={landGeometry} onDoubleClick={handleDoubleClick}>
+          <meshBasicMaterial color={colors.earthLand} toneMapped={false} />
+        </mesh>
+      ) : null}
+    </group>
   );
 }

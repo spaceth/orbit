@@ -81,7 +81,7 @@ Three.js is a library for creating 3D graphics on the web. React Three Fiber mak
 
 In Orbit, these tools are used to render the 3D Earth, satellite dots, orbit trails, and camera movement.
 
-The Earth in the scene is not just a plain sphere. It uses land data from Natural Earth, which is turned into a texture and wrapped around the globe. This gives the site a clean, minimal map of land and ocean that fits the overall visual style.
+The Earth in the scene is not just a plain sphere. It uses land data from Natural Earth, drawn as a vector mesh of land and ocean with no country borders. Coastlines stay smooth as you zoom in, and small islands are omitted so the globe loads quickly.
 
 Satellite markers are designed to stay visible whether you zoom in or out. Their size is recalculated so they remain consistent on screen, instead of becoming too tiny when zoomed out or too large when zoomed in.
 
@@ -114,6 +114,7 @@ Orbit starts with Thai satellites that have NORAD IDs and available OMM data, in
 
 ### Changelog
 
+- **2026-10-06** — Earth is drawn as a simplified vector land mesh instead of a baked country texture. Coastlines stay smooth when zoomed in, country borders are omitted, and tiny islands are left out so the globe loads faster.
 - **2026-09-10** — According to a post on the GISTDA website dated 10 September 2026, GISTDA officially confirmed GISTDA CubeSat-1 (Cube-1). Tracking continues with the same NORAD ID **100471**.
 - **2026-09-08** — GISTDA CubeSat-1 NORAD ID updated from **100466** (`2026-195B` / OBJECT B) to **100471** (`2026-195G` / OBJECT G) based on the latest public catalog assignment for that launch.
 
