@@ -72,6 +72,8 @@ export const UI_TEXT = {
     timelineSpeed: "Playback speed",
     timelineSlower: "Slower",
     timelineFaster: "Faster",
+    timelineShow: "Adjust time",
+    timelineHide: "Hide",
     purpose: {
       Communication: "Communication",
       Military: "Military",
@@ -144,6 +146,8 @@ export const UI_TEXT = {
     timelineSpeed: "ความเร็วการเล่น",
     timelineSlower: "ช้าลง",
     timelineFaster: "เร็วขึ้น",
+    timelineShow: "ปรับเวลา",
+    timelineHide: "ซ่อน",
     purpose: {
       Communication: "การสื่อสาร",
       Military: "ทหาร",

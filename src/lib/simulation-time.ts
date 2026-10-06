@@ -17,6 +17,7 @@ const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 
 const dateFormatters = new Map<Locale, Intl.DateTimeFormat>();
+const clockFormatters = new Map<Locale, Intl.DateTimeFormat>();
 
 export function clampSimulationOffset(offsetMs: number): number {
   if (offsetMs > PREDICTION_WINDOW_MS) {
@@ -88,6 +89,20 @@ export function formatSimulationDate(date: Date, locale: Locale): string {
       timeZoneName: "short",
     });
     dateFormatters.set(locale, formatter);
+  }
+  return formatter.format(date);
+}
+
+export function formatSimulationClock(date: Date, locale: Locale): string {
+  let formatter = clockFormatters.get(locale);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale === "th" ? "th-TH-u-ca-gregory" : "en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    });
+    clockFormatters.set(locale, formatter);
   }
   return formatter.format(date);
 }

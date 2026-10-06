@@ -6,6 +6,7 @@ import { useLocale } from "@/components/locale-provider";
 import { useSimulationTime } from "@/components/simulation-time-provider";
 import { formatTemplate, type UiText } from "@/lib/localization";
 import {
+  formatSimulationClock,
   formatSimulationDate,
   getOffsetParts,
   offsetFromPointer,
@@ -62,6 +63,7 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
   const [frame, setFrame] = useState<{ simMs: number; realMs: number } | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     let frameId = 0;
@@ -82,7 +84,11 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
   const offsetMs = frame ? frame.simMs - frame.realMs : 0;
   const simDate = frame ? new Date(frame.simMs) : null;
   const dateLabel = simDate ? formatSimulationDate(simDate, locale) : "\u00a0";
+  const clockLabel = simDate ? formatSimulationClock(simDate, locale) : null;
   const offsetLabel = frame ? formatOffset(offsetMs, ui) : null;
+  const chipLabel = [clockLabel, offsetLabel ?? (frame ? ui.timelineLive : null), rate === 1 ? null : `${rate}×`]
+    .filter(Boolean)
+    .join(" · ");
   const ratio = thumbRatio(offsetMs);
   const atNow = frame === null || (rate === 1 && Math.abs(offsetMs) < 1000);
   const minRate = SIMULATION_RATES[0];
@@ -103,20 +109,48 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
   return (
     <div
       className={[
-        "pointer-events-none fixed left-1/2 z-30 w-[min(20rem,calc(100vw-3rem))] -translate-x-1/2",
+        "pointer-events-none fixed left-1/2 z-30 flex w-[min(20rem,calc(100vw-3rem))] -translate-x-1/2 justify-center",
         "sm:bottom-10",
         mobileReadingMode
           ? "max-sm:bottom-[calc(70dvh+4.5rem+env(safe-area-inset-bottom))]"
           : "max-sm:bottom-[calc(35dvh+4.5rem+env(safe-area-inset-bottom))]",
       ].join(" ")}
     >
-      <div className="pointer-events-auto flex flex-col items-center bg-background/85 px-4 pt-3 pb-1">
-        <time
-          dateTime={simDate?.toISOString()}
-          className="text-center text-[11px] leading-none text-foreground tabular-nums"
-        >
-          {dateLabel}
-        </time>
+      <button
+        type="button"
+        aria-expanded={mobileOpen}
+        aria-label={ui.timelineShow}
+        onClick={() => setMobileOpen(true)}
+        className={[
+          "pointer-events-auto bg-background/85 px-3 py-2 text-[11px] leading-none text-foreground tabular-nums",
+          mobileOpen ? "hidden" : "max-sm:inline-flex sm:hidden",
+        ].join(" ")}
+      >
+        {chipLabel || "\u00a0"}
+      </button>
+      <div
+        className={[
+          "pointer-events-auto w-full flex-col items-center bg-background/85 px-4 pt-3 pb-1",
+          mobileOpen ? "flex" : "hidden sm:flex",
+        ].join(" ")}
+      >
+        <div className="relative w-full">
+          <time
+            dateTime={simDate?.toISOString()}
+            className="block px-8 text-center text-[11px] leading-none text-foreground tabular-nums sm:px-0"
+          >
+            {dateLabel}
+          </time>
+          <button
+            type="button"
+            aria-expanded={mobileOpen}
+            aria-label={ui.timelineHide}
+            onClick={() => setMobileOpen(false)}
+            className="absolute top-1/2 right-0 -translate-y-1/2 px-1 text-[10px] leading-none tracking-[0.14em] text-muted uppercase sm:hidden"
+          >
+            {ui.timelineHide}
+          </button>
+        </div>
         <p className="mt-1 h-3 text-center text-[10px] leading-none text-muted tabular-nums">
           {offsetLabel ?? (atNow ? ui.timelineLive : "\u00a0")}
         </p>
