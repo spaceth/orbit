@@ -4,7 +4,9 @@ import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import type { Mesh, PerspectiveCamera } from "three";
 
+import { useSimulationTime } from "@/components/simulation-time-provider";
 import { getEcfPosition, getTelemetry } from "@/lib/orbit";
+import { readSimulationMs } from "@/lib/simulation-time";
 import type { SatRec } from "@/lib/orbit";
 import { getWorldScaleForPixelDiameter } from "@/lib/screen-scale";
 import type { OmmData, SatelliteTelemetry } from "@/types/satellite";
@@ -41,10 +43,11 @@ export function SatelliteMarker({
   const markerRef = useRef<Mesh>(null);
   const glowRef = useRef<Mesh>(null);
   const lastUpdateRef = useRef(0);
+  const { clockRef } = useSimulationTime();
 
   useFrame((state) => {
     const now = state.clock.elapsedTime;
-    const date = new Date();
+    const date = new Date(readSimulationMs(clockRef.current));
 
     const position = getEcfPosition(satrec, date);
     if (!position || !markerRef.current) {

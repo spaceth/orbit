@@ -6,7 +6,9 @@ import { useEffect, useRef } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { Vector3 } from "three";
 
+import { useSimulationTime } from "@/components/simulation-time-provider";
 import { getEcfPosition, type SatRec } from "@/lib/orbit";
+import { readSimulationMs } from "@/lib/simulation-time";
 
 interface CameraControllerProps {
   activeNoradId: number | null;
@@ -44,6 +46,7 @@ export function CameraController({
   const focusSpeed = useRef(12);
   const isFocusing = useRef(false);
   const prevActiveId = useRef<number | null | undefined>(undefined);
+  const { clockRef } = useSimulationTime();
 
   useEffect(() => {
     if (prevActiveId.current === undefined) {
@@ -109,7 +112,10 @@ export function CameraController({
       return;
     }
 
-    const position = getEcfPosition(satellite.satrec, new Date());
+    const position = getEcfPosition(
+      satellite.satrec,
+      new Date(readSimulationMs(clockRef.current)),
+    );
     if (!position) {
       controls.update();
       return;

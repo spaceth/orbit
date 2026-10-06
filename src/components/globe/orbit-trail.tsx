@@ -5,7 +5,9 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, useState } from "react";
 import { Vector3 } from "three";
 
+import { useSimulationTime } from "@/components/simulation-time-provider";
 import { getEcfPosition, isGeostationaryTrail, sampleOrbitTrail, type SatRec } from "@/lib/orbit";
+import { readSimulationMs } from "@/lib/simulation-time";
 
 const TRAIL_REFRESH_SECONDS = 0.5;
 
@@ -33,7 +35,9 @@ export function OrbitTrail({
   );
   const pointsRef = useRef<Vector3[]>(points);
   const lastRefreshRef = useRef(0);
+  const lastSampleSimRef = useRef(0);
   const satrecRef = useRef(satrec);
+  const { clockRef } = useSimulationTime();
 
   useFrame((state) => {
     if (satrecRef.current !== satrec) {
@@ -41,15 +45,19 @@ export function OrbitTrail({
       lastRefreshRef.current = 0;
     }
 
-    const now = new Date();
+    const simMs = readSimulationMs(clockRef.current);
+    const now = new Date(simMs);
     const current = getEcfPosition(satrec, now);
     if (!current) {
       return;
     }
 
     const elapsed = state.clock.elapsedTime;
-    if (elapsed - lastRefreshRef.current >= TRAIL_REFRESH_SECONDS) {
+    const jumped = Math.abs(simMs - lastSampleSimRef.current) > 1500;
+    const refreshInterval = jumped ? 0.2 : TRAIL_REFRESH_SECONDS;
+    if (elapsed - lastRefreshRef.current >= refreshInterval) {
       lastRefreshRef.current = elapsed;
+      lastSampleSimRef.current = simMs;
       const trail = sampleOrbitTrail(satrec, now);
       pointsRef.current = trail;
     }

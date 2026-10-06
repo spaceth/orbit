@@ -5,7 +5,9 @@ import { useCallback, useState } from "react";
 
 import { AppToggles } from "@/components/app-toggles";
 import { GlobeLoading } from "@/components/globe-loading";
+import { OrbitTimeline } from "@/components/orbit-timeline";
 import { SatellitePanel } from "@/components/satellite-panel";
+import { SimulationTimeProvider } from "@/components/simulation-time-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SpaceTHLogo } from "@/components/spaceth-logo";
 import { useSatelliteRouteSync } from "@/hooks/use-satellite-route";
@@ -116,7 +118,8 @@ export function OrbitViewer() {
   }, [clearEarthFocus, deselect]);
 
   return (
-    <div className="relative h-full min-h-dvh w-full overflow-hidden bg-background text-foreground transition-colors">
+    <SimulationTimeProvider>
+      <div className="relative h-full min-h-dvh w-full overflow-hidden bg-background text-foreground transition-colors">
       <SpaceTHLogo />
       <AppToggles />
       <div className="satellite-shell max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:z-20 max-sm:bg-white max-sm:pb-[env(safe-area-inset-bottom)] max-sm:dark:bg-black sm:contents">
@@ -151,6 +154,7 @@ export function OrbitViewer() {
           onRetryLoadOmms={retryLoadOmms}
         />
       </div>
+      <OrbitTimeline mobileReadingMode={mobileReadingMode} />
       <div className="absolute inset-0">
         <GlobeScene
           omms={omms}
@@ -168,6 +172,7 @@ export function OrbitViewer() {
           onTelemetryUpdate={updateTelemetry}
         />
       </div>
-    </div>
+      </div>
+    </SimulationTimeProvider>
   );
 }
