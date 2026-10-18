@@ -23,7 +23,7 @@ export function LocaleToggle() {
             aria-pressed={isActive}
             onClick={() => setLocale(value)}
             className={[
-              "px-1.5 py-0.5 transition-opacity",
+              "round-control pressable px-2 py-0.5 transition-opacity",
               isActive ? "text-foreground opacity-100" : "text-muted opacity-60 hover:opacity-100",
             ].join(" ")}
           >

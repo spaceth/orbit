@@ -95,7 +95,7 @@ When a satellite is selected, the camera smoothly moves to focus on it. When it 
 
 You can deep-link to a satellite with a path such as `/theos-2`. Orbit focuses that satellite, then keeps the address bar on `/` so switching satellites in the session does not remount the globe.
 
-Orbit also supports Light Mode and Dark Mode. The interface and the 3D scene share the same theme system, so the UI and globe stay visually consistent.
+Orbit is dark only. The interface and the 3D scene share the same theme, so the UI and globe stay visually consistent.
 
 ## Satellites currently tracked
 
@@ -114,6 +114,7 @@ Orbit starts with Thai satellites that have NORAD IDs and available OMM data, in
 
 ### Changelog
 
+- **2026-10-19** — Major UI update. Panels are frosted black, English type is Poppins, boxes stay square while buttons are pills, the time controller starts as a clock chip on desktop and mobile, In Orbit can collapse, and sort sits above the list. Remove light mode because who the fuck use light mode?
 - **2026-10-06** — Earth is drawn as a simplified vector land mesh instead of a baked country texture. Coastlines stay smooth when zoomed in, country borders are omitted, and tiny islands are left out so the globe loads faster.
 - **2026-09-10** — According to a post on the GISTDA website dated 10 September 2026, GISTDA officially confirmed GISTDA CubeSat-1 (Cube-1). Tracking continues with the same NORAD ID **100471**.
 - **2026-09-08** — GISTDA CubeSat-1 NORAD ID updated from **100466** (`2026-195B` / OBJECT B) to **100471** (`2026-195G` / OBJECT G) based on the latest public catalog assignment for that launch.
@@ -142,7 +143,7 @@ For the 3D view, it uses Three.js and React Three Fiber.
 
 For data fetching, it uses a Next.js API Route to fetch and cache OMM data from CelesTrak.
 
-For styling, it uses Tailwind CSS and shared theme tokens for Light Mode and Dark Mode.
+For styling, it uses Tailwind CSS and dark theme tokens.
 
 ## Deployment
 

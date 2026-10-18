@@ -24,21 +24,21 @@ const CSS_VAR_MAP: Record<keyof ThemeColors, string> = {
   error: "--error",
 };
 
-export const LIGHT_THEME_FALLBACK: ThemeColors = {
-  background: "#ffffff",
-  foreground: "#1d1d1f",
-  muted: "#6e6e73",
-  canvasBackground: "#ffffff",
-  marker: "#000000",
-  orbitTrail: "#000000",
-  earthOcean: "#f2f2f2",
-  earthLand: "#d1d1d1",
-  error: "#ef4444",
+export const DARK_THEME: ThemeColors = {
+  background: "#000000",
+  foreground: "#f5f5f7",
+  muted: "#a1a1a6",
+  canvasBackground: "#000000",
+  marker: "#ffffff",
+  orbitTrail: "#ffffff",
+  earthOcean: "#111111",
+  earthLand: "#b5b5b5",
+  error: "#ff453a",
 };
 
 export function readThemeColors(root: HTMLElement = document.documentElement): ThemeColors {
   const styles = getComputedStyle(root);
-  const colors = { ...LIGHT_THEME_FALLBACK };
+  const colors = { ...DARK_THEME };
 
   for (const [key, cssVar] of Object.entries(CSS_VAR_MAP) as Array<
     [keyof ThemeColors, string]

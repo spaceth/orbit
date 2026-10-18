@@ -1,12 +1,17 @@
 import type { Metadata, Viewport } from "next";
+import { Poppins } from "next/font/google";
 
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { LocaleProvider } from "@/components/locale-provider";
-import { ThemeColorMeta } from "@/components/theme-color-meta";
-import { ThemeProvider } from "@/components/theme-provider";
-import { themeInitScript } from "@/lib/theme-init-script";
 
 import "./globals.css";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+  variable: "--font-poppins",
+});
 
 const OG_IMAGE = "https://spaceth.co/wp-content/uploads/2026/06/new-orbit-og.jpg";
 const OG_TITLE = "Thailand in Orbit";
@@ -15,10 +20,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
-  ],
+  themeColor: "#000000",
 };
 
 export const metadata: Metadata = {
@@ -57,21 +59,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+    <html lang="en" className={`${poppins.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#ffffff" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <meta name="theme-color" content="#000000" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         <link rel="stylesheet" href="https://use.typekit.net/ayj4ilb.css" />
       </head>
       <body className="h-full overflow-hidden font-sans">
         <GoogleAnalytics />
-        <ThemeProvider>
-          <LocaleProvider>
-            <ThemeColorMeta />
-            {children}
-          </LocaleProvider>
-        </ThemeProvider>
+        <LocaleProvider>{children}</LocaleProvider>
       </body>
     </html>
   );

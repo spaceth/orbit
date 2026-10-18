@@ -129,6 +129,24 @@ export function getOffsetParts(offsetMs: number): OffsetParts | null {
   };
 }
 
+/** Progressive resistance past an edge. Overshoot and dimension share a unit. */
+export function rubberband(overshoot: number, dimension: number, constant = 0.55): number {
+  return (overshoot * dimension * constant) / (dimension + constant * Math.abs(overshoot));
+}
+
+/** Track position from 0–1, softening past either end instead of stopping hard. */
+export function rubberbandRatio(clientX: number, rect: DOMRect): number {
+  const span = rect.width || 1;
+  const x = clientX - rect.left;
+  if (x < 0) {
+    return rubberband(x, span) / span;
+  }
+  if (x > span) {
+    return 1 + rubberband(x - span, span) / span;
+  }
+  return x / span;
+}
+
 export function offsetFromPointer(clientX: number, rect: DOMRect): number {
   const span = rect.width || 1;
   const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / span));

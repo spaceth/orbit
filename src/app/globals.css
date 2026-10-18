@@ -1,27 +1,6 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: light;
-  --background: #ffffff;
-  --foreground: #1d1d1f;
-  --muted: #6e6e73;
-  --panel-heading: #000000;
-  --panel: #ffffff;
-  --panel-border: #ddd;
-  --border-subtle: rgba(0, 0, 0, 0.1);
-  --surface-active: rgba(0, 0, 0, 0.08);
-  --surface-hover: rgba(0, 0, 0, 0.04);
-  --surface-skeleton: rgba(0, 0, 0, 0.05);
-  --error: #ef4444;
-  --canvas-background: #ffffff;
-  --marker: #000000;
-  --orbit-trail: #000000;
-  --earth-ocean: #f2f2f2;
-  --earth-land: #d1d1d1;
-}
-
-/* Dark mode overrides — wire up with next-themes or a .dark class on <html> */
-.dark {
   color-scheme: dark;
   --background: #000000;
   --foreground: #f5f5f7;
@@ -39,6 +18,11 @@
   --orbit-trail: #ffffff;
   --earth-ocean: #111111;
   --earth-land: #b5b5b5;
+  --material-panel: #000000b8;
+  --material-chip: #000000b8;
+  --material-sheet: #000000b8;
+  --material-edge: rgba(255, 255, 255, 0.16);
+  --material-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
 }
 
 @theme inline {
@@ -52,13 +36,13 @@
   --color-surface-hover: var(--surface-hover);
   --color-surface-skeleton: var(--surface-skeleton);
   --color-error: var(--error);
-  --font-sans: "aktiv-grotesk-thai", sans-serif;
+  --font-sans: var(--font-poppins), "aktiv-grotesk-thai", sans-serif;
 }
 
 html {
   min-height: 100dvh;
   min-height: -webkit-fill-available;
-  background-color: #ffffff;
+  background-color: #000000;
 }
 
 /* Thai text reads better without Latin-style letter-spacing. */
@@ -67,17 +51,27 @@ html[lang="th"] * {
   letter-spacing: normal !important;
 }
 
-html.dark {
-  background-color: #000000;
-}
-
 body {
   min-height: 100dvh;
   min-height: -webkit-fill-available;
-  background-color: #ffffff;
+  background-color: #000000;
   color: var(--foreground);
   font-family: var(--font-sans);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-optical-sizing: auto;
+  line-height: 1.45;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active:not(:disabled) {
+  opacity: 0.72;
+  transition: opacity 80ms ease-out, transform 100ms ease-out;
+}
+
+.pressable:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 @media (max-width: 640px) {
@@ -89,27 +83,59 @@ body {
     bottom: 0;
     z-index: 25;
     height: env(safe-area-inset-bottom, 0px);
-    background-color: #ffffff;
+    background-color: var(--material-sheet);
     pointer-events: none;
   }
-
-  html.dark body::after {
-    background-color: #000000;
-  }
 }
 
-html.dark body {
-  background-color: #000000;
+.glass-panel,
+.material-chip,
+.material-panel,
+.satellite-shell {
+  background: #000000b8;
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
 }
 
-.glass-panel {
-  background: #ffffff;
-  border: 1px solid var(--panel-border);
+.glass-panel,
+.material-chip,
+.material-panel {
+  --foreground: #f5f5f7;
+  --muted: #a1a1a6;
+  --panel-heading: #f5f5f7;
+  --surface-active: rgba(255, 255, 255, 0.1);
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  color: #f5f5f7;
+  border: 1px solid var(--material-edge);
   border-radius: 0;
+  box-shadow: var(--material-shadow);
 }
 
-html.dark .glass-panel {
-  background: #000000;
+.round-control {
+  border: 1px solid var(--material-edge);
+  border-radius: 999px;
+}
+
+.timeline-surface {
+  transform-origin: bottom center;
+  transition:
+    opacity 320ms cubic-bezier(0.2, 0, 0, 1),
+    transform 320ms cubic-bezier(0.2, 0, 0, 1),
+    filter 320ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.timeline-thumb {
+  transition:
+    left 320ms cubic-bezier(0.2, 0, 0, 1),
+    width 320ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (min-width: 641px) {
+  .satellite-panel {
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 }
 
 @media (max-width: 640px) {
@@ -118,10 +144,62 @@ html.dark .glass-panel {
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    transition: max-height 0.35s ease;
+    transition: max-height 0.35s cubic-bezier(0.2, 0, 0, 1);
   }
 
   .satellite-panel--reading {
     max-height: 70dvh;
+  }
+
+  .glass-panel {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .satellite-shell {
+    border-top: 1px solid var(--material-edge);
+    box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-surface,
+  .timeline-thumb,
+  .satellite-panel,
+  button {
+    transition: opacity 200ms ease !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel,
+  .material-chip,
+  .material-panel,
+  .satellite-shell {
+    background: var(--background);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) and (max-width: 640px) {
+  .glass-panel {
+    background: transparent;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glass-panel,
+  .material-chip,
+  .material-panel {
+    background: var(--background);
+    border-color: var(--foreground);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }

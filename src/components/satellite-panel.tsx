@@ -116,6 +116,7 @@ export function SatellitePanel({
   const panelRef = useRef<HTMLElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
   const [readingMode, setReadingMode] = useState(false);
+  const [inOrbitExpanded, setInOrbitExpanded] = useState(true);
   const [legacyExpanded, setLegacyExpanded] = useState(false);
   const [upcomingExpanded, setUpcomingExpanded] = useState(false);
   const [sortBy, setSortBy] = useState<SatelliteSortKey>("alphabet");
@@ -196,12 +197,7 @@ export function SatellitePanel({
         isMobile && readingMode ? "satellite-panel--reading" : "",
       ].join(" ")}
     >
-      <p className="text-xs font-medium uppercase tracking-[0.14em] text-panel-heading">
-        {ui.inOrbit}
-      </p>
-
-      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-        <p className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-muted">{ui.sortBy}</p>
+      <div className="flex flex-wrap items-center gap-1">
         <div className="flex flex-wrap gap-1" role="group" aria-label={ui.sortSatellites}>
           {SATELLITE_SORT_KEYS.map((value) => {
             const isActive = sortBy === value;
@@ -213,7 +209,7 @@ export function SatellitePanel({
                 aria-pressed={isActive}
                 onClick={() => setSortBy(value)}
                 className={[
-                  "px-2 py-0.5 text-[10px] transition-colors",
+                  "round-control px-2.5 py-0.5 text-[10px] transition-colors",
                   isActive
                     ? "bg-surface-active font-medium text-foreground"
                     : "text-muted hover:text-foreground",
@@ -226,6 +222,17 @@ export function SatellitePanel({
         </div>
       </div>
 
+      <button
+        type="button"
+        onClick={() => setInOrbitExpanded((expanded) => !expanded)}
+        className="mt-4 flex w-full items-center gap-1.5 text-left text-xs font-medium uppercase tracking-[0.14em] text-panel-heading transition-colors hover:text-foreground"
+        aria-expanded={inOrbitExpanded}
+      >
+        <ChevronIcon expanded={inOrbitExpanded} />
+        {ui.inOrbit}
+      </button>
+
+      {inOrbitExpanded ? (
       <div className="mt-4 space-y-1">
         {sortedSatellites.map((satellite) => {
           const isAvailable = availableSet.has(satellite.noradId);
@@ -241,7 +248,7 @@ export function SatellitePanel({
             <div
               key={satellite.noradId}
               className={[
-                "flex items-center transition-colors",
+                "flex items-center rounded-xl transition-colors",
                 isActive ? "bg-surface-active" : isHighlighted ? "bg-surface-hover" : "",
                 isAvailable ? "opacity-100" : "opacity-65",
               ].join(" ")}
@@ -295,6 +302,7 @@ export function SatellitePanel({
           );
         })}
       </div>
+      ) : null}
 
       {legacySatellites.length > 0 ? (
         <>
@@ -317,7 +325,7 @@ export function SatellitePanel({
                   <div
                     key={satellite.id}
                     className={[
-                      "flex items-center transition-colors",
+                      "flex items-center rounded-xl transition-colors",
                       isActive ? "bg-surface-active" : isHighlighted ? "bg-surface-hover" : "",
                     ].join(" ")}
                   >
@@ -363,7 +371,7 @@ export function SatellitePanel({
                   <div
                     key={satellite.id}
                     className={[
-                      "flex items-center transition-colors",
+                      "flex items-center rounded-xl transition-colors",
                       isActive ? "bg-surface-active" : isHighlighted ? "bg-surface-hover" : "",
                     ].join(" ")}
                   >
@@ -407,7 +415,7 @@ export function SatellitePanel({
             type="button"
             onClick={onRetryLoadOmms}
             disabled={loading}
-            className="text-sm text-foreground underline decoration-muted underline-offset-2 transition-opacity hover:opacity-70 disabled:opacity-50"
+            className="round-control px-3 py-1 text-sm text-foreground transition-opacity hover:opacity-70 disabled:opacity-50"
           >
             {ui.ommRetry}
           </button>

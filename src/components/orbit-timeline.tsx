@@ -12,6 +12,7 @@ import {
   offsetFromPointer,
   PREDICTION_WINDOW_MS,
   readSimulationMs,
+  rubberbandRatio,
   SIMULATION_RATES,
   thumbRatio,
   TIMELINE_DAY_STEP_MS,
@@ -63,7 +64,8 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
   const [frame, setFrame] = useState<{ simMs: number; realMs: number } | null>(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [dragRatio, setDragRatio] = useState<number | null>(null);
 
   useEffect(() => {
     let frameId = 0;
@@ -89,7 +91,7 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
   const chipLabel = [clockLabel, offsetLabel ?? (frame ? ui.timelineLive : null), rate === 1 ? null : `${rate}×`]
     .filter(Boolean)
     .join(" · ");
-  const ratio = thumbRatio(offsetMs);
+  const ratio = dragRatio ?? thumbRatio(offsetMs);
   const atNow = frame === null || (rate === 1 && Math.abs(offsetMs) < 1000);
   const minRate = SIMULATION_RATES[0];
   const maxRate = SIMULATION_RATES[SIMULATION_RATES.length - 1];
@@ -99,7 +101,13 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
     if (!rect) {
       return;
     }
+    setDragRatio(rubberbandRatio(clientX, rect));
     setOffsetMs(offsetFromPointer(clientX, rect));
+  };
+
+  const endDrag = () => {
+    draggingRef.current = false;
+    setDragRatio(null);
   };
 
   const nudge = (deltaMs: number) => {
@@ -118,35 +126,40 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
     >
       <button
         type="button"
-        aria-expanded={mobileOpen}
+        aria-expanded={open}
         aria-label={ui.timelineShow}
-        onClick={() => setMobileOpen(true)}
+        onClick={() => setOpen(true)}
         className={[
-          "pointer-events-auto bg-background/85 px-3 py-2 text-[11px] leading-none text-foreground tabular-nums",
-          mobileOpen ? "hidden" : "max-sm:inline-flex sm:hidden",
+          "pressable material-chip timeline-surface pointer-events-auto px-3 py-2 text-[11px] leading-none text-foreground tabular-nums",
+          "inline-flex",
+          open ? "pointer-events-none absolute scale-95 opacity-0" : "",
         ].join(" ")}
       >
         {chipLabel || "\u00a0"}
       </button>
       <div
+        inert={!open}
         className={[
-          "pointer-events-auto w-full flex-col items-center bg-background/85 px-4 pt-3 pb-1",
-          mobileOpen ? "flex" : "hidden sm:flex",
+          "material-panel timeline-surface pointer-events-auto w-full flex-col items-center px-4 pt-3 pb-1",
+          "flex",
+          open
+            ? ""
+            : "pointer-events-none absolute inset-x-0 bottom-0 scale-[0.96] opacity-0 blur-[8px]",
         ].join(" ")}
       >
         <div className="relative w-full">
           <time
             dateTime={simDate?.toISOString()}
-            className="block px-8 text-center text-[11px] leading-none text-foreground tabular-nums sm:px-0"
+            className="block px-8 text-center text-[11px] leading-none text-foreground tabular-nums"
           >
             {dateLabel}
           </time>
           <button
             type="button"
-            aria-expanded={mobileOpen}
+            aria-expanded={open}
             aria-label={ui.timelineHide}
-            onClick={() => setMobileOpen(false)}
-            className="absolute top-1/2 right-0 -translate-y-1/2 px-1 text-[10px] leading-none tracking-[0.14em] text-muted uppercase sm:hidden"
+            onClick={() => setOpen(false)}
+            className="round-control absolute top-1/2 right-0 -translate-y-1/2 px-2 py-0.5 text-[10px] leading-none tracking-[0.14em] text-muted uppercase"
           >
             {ui.timelineHide}
           </button>
@@ -164,7 +177,7 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
             aria-label={ui.timelineSlower}
             disabled={rate <= minRate}
             onClick={() => stepRate(-1)}
-            className="px-1.5 py-1 text-foreground transition-opacity disabled:cursor-default disabled:opacity-30"
+            className="round-control pressable px-2 py-0.5 text-foreground disabled:cursor-default disabled:opacity-30"
           >
             −
           </button>
@@ -174,7 +187,7 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
             aria-label={ui.timelineFaster}
             disabled={rate >= maxRate}
             onClick={() => stepRate(1)}
-            className="px-1.5 py-1 text-foreground transition-opacity disabled:cursor-default disabled:opacity-30"
+            className="round-control pressable px-2 py-0.5 text-foreground disabled:cursor-default disabled:opacity-30"
           >
             +
           </button>
@@ -205,14 +218,12 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
             if (!draggingRef.current) {
               return;
             }
-            draggingRef.current = false;
+            endDrag();
             if (event.currentTarget.hasPointerCapture(event.pointerId)) {
               event.currentTarget.releasePointerCapture(event.pointerId);
             }
           }}
-          onPointerCancel={() => {
-            draggingRef.current = false;
-          }}
+          onPointerCancel={endDrag}
           onKeyDown={(event) => {
             const step = event.shiftKey ? TIMELINE_DAY_STEP_MS : TIMELINE_HOUR_STEP_MS;
             if (event.key === "ArrowRight" || event.key === "ArrowUp") {
@@ -233,7 +244,10 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
           <div className="absolute top-1/2 right-0 left-0 h-px -translate-y-1/2 bg-foreground/25" />
           {ratio !== 0.5 ? (
             <div
-              className="absolute top-1/2 h-px -translate-y-1/2 bg-foreground"
+              className={[
+                "timeline-thumb absolute top-1/2 h-px -translate-y-1/2 bg-foreground",
+                dragRatio === null ? "" : "transition-none",
+              ].join(" ")}
               style={{
                 left: `${Math.min(50, ratio * 100)}%`,
                 width: `${Math.abs(ratio * 100 - 50)}%`,
@@ -242,7 +256,10 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
           ) : null}
           <div className="absolute top-1/2 left-1/2 h-2 w-px -translate-x-1/2 -translate-y-1/2 bg-foreground/45" />
           <div
-            className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground"
+            className={[
+              "timeline-thumb absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground",
+              dragRatio === null ? "" : "transition-none",
+            ].join(" ")}
             style={{ left: `${ratio * 100}%` }}
           />
         </div>
@@ -254,7 +271,7 @@ export function OrbitTimeline({ mobileReadingMode }: OrbitTimelineProps) {
             onClick={resetToNow}
             disabled={atNow}
             className={[
-              "px-2 py-1 uppercase tracking-[0.14em] transition-colors",
+              "round-control pressable px-2.5 py-1 uppercase tracking-[0.14em] transition-colors",
               atNow
                 ? "cursor-default text-muted"
                 : "text-foreground hover:opacity-70",
