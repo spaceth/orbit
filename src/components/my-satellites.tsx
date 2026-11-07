@@ -44,6 +44,7 @@ export function MySatelliteSection({
   onSelect,
   onHover,
   onToggleVisibility,
+  onRemove,
 }: {
   satellites: readonly MySatellite[];
   omms: readonly OmmData[];
@@ -56,6 +57,7 @@ export function MySatelliteSection({
   onSelect: (noradId: number) => void;
   onHover: (noradId: number | null) => void;
   onToggleVisibility: (noradId: number) => void;
+  onRemove: (noradId: number) => void;
 }) {
   const { ui } = useLocale();
   const [expanded, setExpanded] = useState(false);
@@ -188,7 +190,7 @@ export function MySatelliteSection({
                       <button
                         type="button"
                         onClick={() => onToggleVisibility(satellite.noradId)}
-                        className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center text-muted transition-colors hover:text-foreground"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center text-muted transition-colors hover:text-foreground"
                         aria-label={
                           isVisible
                             ? formatTemplate(ui.hideSatellite, { name: satellite.name })
@@ -198,6 +200,14 @@ export function MySatelliteSection({
                         <VisibilityIcon visible={isVisible} />
                       </button>
                     ) : null}
+                    <button
+                      type="button"
+                      onClick={() => onRemove(satellite.noradId)}
+                      className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center text-muted transition-colors hover:text-foreground"
+                      aria-label={formatTemplate(ui.removeSatellite, { name: satellite.name })}
+                    >
+                      <RemoveIcon />
+                    </button>
                   </div>
                 );
               })}
@@ -215,14 +225,12 @@ export function MySatelliteDetail({
   failed,
   telemetry,
   onRename,
-  onRemove,
 }: {
   satellite: MySatellite;
   omm: OmmData | null;
   failed: boolean;
   telemetry: SatelliteTelemetry | null;
   onRename: (noradId: number, name: string) => void;
-  onRemove: (noradId: number) => void;
 }) {
   const { ui } = useLocale();
   const [name, setName] = useState(satellite.name);
@@ -301,13 +309,20 @@ export function MySatelliteDetail({
           {pending ? ui.computingPosition : ui.unavailable}
         </p>
       )}
-      <button
-        type="button"
-        onClick={() => onRemove(satellite.noradId)}
-        className="round-control pressable mt-5 px-3 py-1 text-sm text-muted"
-      >
-        {formatTemplate(ui.removeSatellite, { name: satellite.name })}
-      </button>
     </>
+  );
+}
+
+function RemoveIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 7h16M9 7V5h6v2M8 7l.8 12h6.4L16 7"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

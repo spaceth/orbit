@@ -452,6 +452,7 @@ export function SatellitePanel({
         onSelect={onSelectMyNoradId}
         onHover={onHoverMyNoradId}
         onToggleVisibility={onToggleVisibility}
+        onRemove={onRemoveMySatellite}
       />
 
       {loading && (
@@ -484,7 +485,6 @@ export function SatellitePanel({
               failed={myFailedNoradIds.has(activeMySatellite.noradId)}
               telemetry={activeMyTelemetry}
               onRename={onRenameMySatellite}
-              onRemove={onRemoveMySatellite}
             />
           ) : null}
 
