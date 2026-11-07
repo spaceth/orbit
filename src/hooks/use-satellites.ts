@@ -190,6 +190,7 @@ export function useSatellites() {
     activeFutureSatellite,
     activeOmm,
     activeTelemetry,
+    telemetryById,
     availableNoradIds,
     hiddenNoradIds,
     selectNoradId,

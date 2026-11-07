@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { CopyNoradId } from "@/components/copy-norad-id";
 import { useLocale } from "@/components/locale-provider";
+import { MySatelliteDetail, MySatelliteSection } from "@/components/my-satellites";
 import {
   getFutureSatelliteDescription,
   getLegacySatelliteDescription,
@@ -27,6 +29,9 @@ import {
   sortSatellites,
   type SatelliteSortKey,
 } from "@/lib/satellite-sort";
+
+import type { AddMySatelliteResult } from "@/hooks/use-my-satellites";
+import type { MySatellite } from "@/lib/my-satellites";
 
 import { OperationCounter } from "./operation-counter";
 import { VisibilityIcon } from "./visibility-icon";
@@ -55,6 +60,18 @@ interface SatellitePanelProps {
   onHoverLegacyId: (id: string | null) => void;
   onHoverFutureId: (id: string | null) => void;
   onToggleVisibility: (noradId: number) => void;
+  mySatellites: readonly MySatellite[];
+  myOmms: readonly OmmData[];
+  myFailedNoradIds: ReadonlySet<number>;
+  activeMyNoradId: number | null;
+  hoverMyNoradId: number | null;
+  activeMyTelemetry: SatelliteTelemetry | null;
+  myAdding: boolean;
+  onAddMySatellite: (input: string) => Promise<AddMySatelliteResult>;
+  onSelectMyNoradId: (noradId: number) => void;
+  onHoverMyNoradId: (noradId: number | null) => void;
+  onRenameMySatellite: (noradId: number, name: string) => void;
+  onRemoveMySatellite: (noradId: number) => void;
   onMobileReadingModeChange: (readingMode: boolean) => void;
   loading: boolean;
   loadError: boolean;
@@ -105,6 +122,18 @@ export function SatellitePanel({
   onHoverLegacyId,
   onHoverFutureId,
   onToggleVisibility,
+  mySatellites,
+  myOmms,
+  myFailedNoradIds,
+  activeMyNoradId,
+  hoverMyNoradId,
+  activeMyTelemetry,
+  myAdding,
+  onAddMySatellite,
+  onSelectMyNoradId,
+  onHoverMyNoradId,
+  onRenameMySatellite,
+  onRemoveMySatellite,
   onMobileReadingModeChange,
   loading,
   loadError,
@@ -141,12 +170,22 @@ export function SatellitePanel({
     operator: ui.sortOperator,
   };
 
+  const activeMySatellite =
+    activeMyNoradId === null
+      ? null
+      : (mySatellites.find((satellite) => satellite.noradId === activeMyNoradId) ?? null);
+  const activeMyOmm =
+    activeMyNoradId === null
+      ? null
+      : (myOmms.find((omm) => omm.noradId === activeMyNoradId) ?? null);
+
   const hasDetail =
-    !loading &&
-    !loadError &&
-    (activeFutureSatellite !== null ||
-      activeLegacySatellite !== null ||
-      (activeSatellite !== null && activeOmm !== null));
+    activeMySatellite !== null ||
+    (!loading &&
+      !loadError &&
+      (activeFutureSatellite !== null ||
+        activeLegacySatellite !== null ||
+        (activeSatellite !== null && activeOmm !== null)));
 
   const updateReadingMode = useCallback(
     (next: boolean) => {
@@ -161,7 +200,7 @@ export function SatellitePanel({
     if (panelRef.current) {
       panelRef.current.scrollTop = 0;
     }
-  }, [activeNoradId, activeLegacyId, activeFutureId, updateReadingMode]);
+  }, [activeNoradId, activeLegacyId, activeFutureId, activeMyNoradId, updateReadingMode]);
 
   useEffect(() => {
     if (activeLegacyId !== null) {
@@ -401,6 +440,20 @@ export function SatellitePanel({
         </>
       ) : null}
 
+      <MySatelliteSection
+        satellites={mySatellites}
+        omms={myOmms}
+        failedNoradIds={myFailedNoradIds}
+        hiddenNoradIds={hiddenNoradIds}
+        activeNoradId={activeMyNoradId}
+        hoverNoradId={hoverMyNoradId}
+        adding={myAdding}
+        onAdd={onAddMySatellite}
+        onSelect={onSelectMyNoradId}
+        onHover={onHoverMyNoradId}
+        onToggleVisibility={onToggleVisibility}
+      />
+
       {loading && (
         <div className="mt-4 space-y-3">
           <div className="h-6 w-40 animate-pulse bg-surface-skeleton" />
@@ -424,7 +477,18 @@ export function SatellitePanel({
 
       {hasDetail ? (
         <div ref={detailRef}>
-          {activeFutureSatellite ? (
+          {activeMySatellite ? (
+            <MySatelliteDetail
+              satellite={activeMySatellite}
+              omm={activeMyOmm}
+              failed={myFailedNoradIds.has(activeMySatellite.noradId)}
+              telemetry={activeMyTelemetry}
+              onRename={onRenameMySatellite}
+              onRemove={onRemoveMySatellite}
+            />
+          ) : null}
+
+          {activeFutureSatellite && !activeMySatellite ? (
             <>
               <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
                 {activeFutureSatellite.name}
@@ -445,7 +509,7 @@ export function SatellitePanel({
             </>
           ) : null}
 
-          {activeLegacySatellite && !activeFutureSatellite ? (
+          {activeLegacySatellite && !activeFutureSatellite && !activeMySatellite ? (
             <>
               <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
                 {activeLegacySatellite.name}
@@ -455,7 +519,7 @@ export function SatellitePanel({
               </p>
               {activeLegacySatellite.noradId !== undefined ? (
                 <p className="mt-1 text-sm text-muted">
-                  {formatTemplate(ui.noradId, { noradId: activeLegacySatellite.noradId })}
+                  <CopyNoradId key={activeLegacySatellite.noradId} noradId={activeLegacySatellite.noradId} />
                   {activeLegacySatellite.operator
                     ? ` · ${activeLegacySatellite.operator}`
                     : null}
@@ -502,7 +566,8 @@ export function SatellitePanel({
           {activeSatellite &&
           activeOmm &&
           !activeFutureSatellite &&
-          !activeLegacySatellite ? (
+          !activeLegacySatellite &&
+          !activeMySatellite ? (
             <>
               <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
                 {activeSatellite.name}
@@ -514,10 +579,8 @@ export function SatellitePanel({
                 {getPurposeLabel(locale, activeSatellite.purpose)}
               </p>
               <p className="mt-1 text-sm text-muted">
-                {formatTemplate(ui.noradOmm, {
-                  noradId: activeOmm.noradId,
-                  age: formatOmmAge(activeOmm.epoch, ui),
-                })}
+                <CopyNoradId key={activeOmm.noradId} noradId={activeOmm.noradId} />
+                {` · OMM ${formatOmmAge(activeOmm.epoch, ui)}`}
               </p>
 
               {getSatelliteDescription(locale, activeSatellite.noradId) ? (

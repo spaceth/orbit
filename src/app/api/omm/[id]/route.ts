@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-import { isAllowedNoradId } from "@/lib/satellites";
 import { getFallbackOmm } from "@/lib/omm-fallback";
 import { fetchOmmFromCelestrak } from "@/lib/omm";
 
@@ -11,11 +10,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const noradId = Number.parseInt(id, 10);
-
-  if (!Number.isFinite(noradId) || !isAllowedNoradId(noradId)) {
-    return NextResponse.json({ error: "Satellite not allowed" }, { status: 403 });
+  if (!/^[1-9]\d{0,8}$/.test(id)) {
+    return NextResponse.json({ error: "Satellite not found" }, { status: 404 });
   }
+
+  const noradId = Number(id);
 
   try {
     const omm = await fetchOmmFromCelestrak(noradId);

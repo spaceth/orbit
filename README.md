@@ -114,6 +114,7 @@ Orbit starts with Thai satellites that have NORAD IDs and available OMM data, in
 
 ### Changelog
 
+- **2026-11-07** — Add My Satellites, stored only in this browser. Enter a NORAD ID or a TLE to track any catalog object with the same OMM feed, rename it, and click a NORAD ID to copy it.
 - **2026-10-19** — Major UI update. Panels are frosted black, English type is Poppins, boxes stay square while buttons are pills, the time controller starts as a clock chip on desktop and mobile, In Orbit can collapse, and sort sits above the list. Remove light mode because who the fuck use light mode?
 - **2026-10-06** — Earth is drawn as a simplified vector land mesh instead of a baked country texture. Coastlines stay smooth when zoomed in, country borders are omitted, and tiny islands are left out so the globe loads faster.
 - **2026-09-10** — According to a post on the GISTDA website dated 10 September 2026, GISTDA officially confirmed GISTDA CubeSat-1 (Cube-1). Tracking continues with the same NORAD ID **100471**.

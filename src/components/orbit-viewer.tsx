@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { AppToggles } from "@/components/app-toggles";
 import { GlobeLoading } from "@/components/globe-loading";
@@ -10,6 +10,7 @@ import { SatellitePanel } from "@/components/satellite-panel";
 import { SimulationTimeProvider } from "@/components/simulation-time-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SpaceTHLogo } from "@/components/spaceth-logo";
+import { useMySatellites } from "@/hooks/use-my-satellites";
 import { useSatelliteRouteSync } from "@/hooks/use-satellite-route";
 import { useSatellites } from "@/hooks/use-satellites";
 import { useThemeColors } from "@/hooks/use-theme-colors";
@@ -45,6 +46,7 @@ export function OrbitViewer() {
     activeNoradId,
     activeLegacyId,
     activeFutureId,
+    hoverNoradId,
     highlightedNoradId,
     hoverLegacyId,
     hoverFutureId,
@@ -53,6 +55,7 @@ export function OrbitViewer() {
     activeFutureSatellite,
     activeOmm,
     activeTelemetry,
+    telemetryById,
     availableNoradIds,
     hiddenNoradIds,
     selectNoradId,
@@ -65,6 +68,30 @@ export function OrbitViewer() {
     updateTelemetry,
     toggleVisibility,
   } = useSatellites();
+  const {
+    satellites: mySatellites,
+    omms: myOmms,
+    failedNoradIds: myFailedNoradIds,
+    adding: myAdding,
+    activeNoradId: activeMyNoradId,
+    hoverNoradId: hoverMyNoradId,
+    setHoverNoradId: setHoverMyNoradId,
+    selectNoradId: selectMyNoradId,
+    deselect: deselectMy,
+    addSatellite: addMySatellite,
+    renameSatellite: renameMySatellite,
+    removeSatellite: removeMySatellite,
+  } = useMySatellites();
+
+  const globeOmms = useMemo(() => {
+    const seen = new Set(omms.map((omm) => omm.noradId));
+    return [...omms, ...myOmms.filter((omm) => !seen.has(omm.noradId))];
+  }, [omms, myOmms]);
+  const globeActiveNoradId = activeMyNoradId ?? activeNoradId;
+  const globeHighlightedNoradId =
+    hoverMyNoradId ?? hoverNoradId ?? activeMyNoradId ?? activeNoradId;
+  const activeMyTelemetry =
+    activeMyNoradId === null ? null : (telemetryById[activeMyNoradId] ?? null);
 
   const clearEarthFocus = useCallback(() => {
     setEarthFocused(false);
@@ -74,48 +101,111 @@ export function OrbitViewer() {
     setEarthFocused(false);
   }, []);
 
+  const selectCatalogNoradId = useCallback(
+    (noradId: number) => {
+      deselectMy();
+      selectNoradId(noradId);
+    },
+    [deselectMy, selectNoradId],
+  );
+
+  const selectCatalogLegacyId = useCallback(
+    (id: string) => {
+      deselectMy();
+      selectLegacyId(id);
+    },
+    [deselectMy, selectLegacyId],
+  );
+
+  const selectCatalogFutureId = useCallback(
+    (id: string) => {
+      deselectMy();
+      selectFutureId(id);
+    },
+    [deselectMy, selectFutureId],
+  );
+
   useSatelliteRouteSync({
     loading,
     availableNoradIds,
-    selectNoradId,
-    selectLegacyId,
-    selectFutureId,
+    selectNoradId: selectCatalogNoradId,
+    selectLegacyId: selectCatalogLegacyId,
+    selectFutureId: selectCatalogFutureId,
     onFocusSatellite: focusSatellite,
   });
 
   const handleSelectNoradId = useCallback(
     (noradId: number) => {
       focusSatellite();
+      const mineOnly =
+        mySatellites.some((satellite) => satellite.noradId === noradId) &&
+        !availableNoradIds.includes(noradId);
+      if (mineOnly) {
+        deselect();
+        selectMyNoradId(noradId);
+        return;
+      }
+      deselectMy();
       selectNoradId(noradId);
     },
-    [focusSatellite, selectNoradId],
+    [
+      availableNoradIds,
+      deselect,
+      deselectMy,
+      focusSatellite,
+      mySatellites,
+      selectMyNoradId,
+      selectNoradId,
+    ],
+  );
+
+  const handleSelectMyNoradId = useCallback(
+    (noradId: number) => {
+      focusSatellite();
+      deselect();
+      selectMyNoradId(noradId);
+    },
+    [deselect, focusSatellite, selectMyNoradId],
   );
 
   const handleSelectLegacyId = useCallback(
     (id: string) => {
       focusSatellite();
-      selectLegacyId(id);
+      selectCatalogLegacyId(id);
     },
-    [focusSatellite, selectLegacyId],
+    [focusSatellite, selectCatalogLegacyId],
   );
 
   const handleSelectFutureId = useCallback(
     (id: string) => {
       focusSatellite();
-      selectFutureId(id);
+      selectCatalogFutureId(id);
     },
-    [focusSatellite, selectFutureId],
+    [focusSatellite, selectCatalogFutureId],
+  );
+
+  const handleToggleVisibility = useCallback(
+    (noradId: number) => {
+      const willHide = !hiddenNoradIds.has(noradId);
+      toggleVisibility(noradId);
+      if (willHide && activeMyNoradId === noradId) {
+        deselectMy();
+      }
+    },
+    [activeMyNoradId, deselectMy, hiddenNoradIds, toggleVisibility],
   );
 
   const handleEarthDoubleClick = useCallback(() => {
     deselect();
+    deselectMy();
     focusEarth();
-  }, [deselect, focusEarth]);
+  }, [deselect, deselectMy, focusEarth]);
 
   const handleDeselect = useCallback(() => {
     clearEarthFocus();
     deselect();
-  }, [clearEarthFocus, deselect]);
+    deselectMy();
+  }, [clearEarthFocus, deselect, deselectMy]);
 
   return (
     <SimulationTimeProvider>
@@ -147,7 +237,19 @@ export function OrbitViewer() {
           onHoverNoradId={setHoverNoradId}
           onHoverLegacyId={setHoverLegacyId}
           onHoverFutureId={setHoverFutureId}
-          onToggleVisibility={toggleVisibility}
+          onToggleVisibility={handleToggleVisibility}
+          mySatellites={mySatellites}
+          myOmms={myOmms}
+          myFailedNoradIds={myFailedNoradIds}
+          activeMyNoradId={activeMyNoradId}
+          hoverMyNoradId={hoverMyNoradId}
+          activeMyTelemetry={activeMyTelemetry}
+          myAdding={myAdding}
+          onAddMySatellite={addMySatellite}
+          onSelectMyNoradId={handleSelectMyNoradId}
+          onHoverMyNoradId={setHoverMyNoradId}
+          onRenameMySatellite={renameMySatellite}
+          onRemoveMySatellite={removeMySatellite}
           onMobileReadingModeChange={handleMobileReadingModeChange}
           loading={loading}
           loadError={loadError}
@@ -157,11 +259,11 @@ export function OrbitViewer() {
       <OrbitTimeline mobileReadingMode={mobileReadingMode} />
       <div className="absolute inset-0">
         <GlobeScene
-          omms={omms}
+          omms={globeOmms}
           themeColors={themeColors}
           hiddenNoradIds={hiddenNoradIds}
-          activeNoradId={activeNoradId}
-          highlightedNoradId={highlightedNoradId}
+          activeNoradId={globeActiveNoradId}
+          highlightedNoradId={globeHighlightedNoradId}
           mobileReadingMode={mobileReadingMode}
           onSelectNoradId={handleSelectNoradId}
           onHoverNoradId={setHoverNoradId}
