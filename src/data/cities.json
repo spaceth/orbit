@@ -1,0 +1,14 @@
+[
+  {
+    "id": "bangkok",
+    "name": { "en": "Bangkok", "th": "กรุงเทพฯ" },
+    "lat": 13.7563,
+    "lon": 100.5018
+  },
+  {
+    "id": "chiang-mai",
+    "name": { "en": "Chiang Mai", "th": "เชียงใหม่" },
+    "lat": 18.7883,
+    "lon": 98.9853
+  }
+]

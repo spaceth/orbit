@@ -8,13 +8,15 @@ import { decodeLandMesh } from "@/lib/geo";
 import type { ThemeColors } from "@/lib/theme";
 
 const LAND_MESH_URL = "/data/land-mesh.bin";
+const GROUND_EARTH_COLOR = "#3a3a3c";
 
 interface EarthProps {
   colors: ThemeColors;
+  plain?: boolean;
   onDoubleClick?: () => void;
 }
 
-export function Earth({ colors, onDoubleClick }: EarthProps) {
+export function Earth({ colors, plain = false, onDoubleClick }: EarthProps) {
   const [landGeometry, setLandGeometry] = useState<BufferGeometry | null>(null);
   const [oceanRadius, setOceanRadius] = useState(1);
 
@@ -58,10 +60,13 @@ export function Earth({ colors, onDoubleClick }: EarthProps) {
   return (
     <group>
       <mesh onDoubleClick={handleDoubleClick}>
-        <sphereGeometry args={[oceanRadius, 128, 128]} />
-        <meshBasicMaterial color={colors.earthOcean} toneMapped={false} />
+        <sphereGeometry args={[plain ? 1 : oceanRadius, 128, 128]} />
+        <meshBasicMaterial
+          color={plain ? GROUND_EARTH_COLOR : colors.earthOcean}
+          toneMapped={false}
+        />
       </mesh>
-      {landGeometry ? (
+      {!plain && landGeometry ? (
         <mesh geometry={landGeometry} onDoubleClick={handleDoubleClick}>
           <meshBasicMaterial color={colors.earthLand} toneMapped={false} />
         </mesh>

@@ -114,6 +114,7 @@ Orbit starts with Thai satellites that have NORAD IDs and available OMM data, in
 
 ### Changelog
 
+- **2026-11-08** — Add a Ground view next to the language switch. It looks up from the user's location, or from Bangkok, Chiang Mai, or typed coordinates, and the time controller still moves the sky, satellites, and trails together. Stars to magnitude 6 come from the XHIP Hipparcos compilation (Anderson & Francis, 2012), and the constellation lines are the IAU figures as drawn in Olaf Frohn's d3-celestial. From the ground, Earth is a plain dark gray sphere.
 - **2026-11-07** — Add My Satellites, stored only in this browser. Enter a NORAD ID or a TLE to track any catalog object with the same OMM feed, rename it, and click a NORAD ID to copy it.
 - **2026-10-19** — Major UI update. Panels are frosted black, English type is Poppins, boxes stay square while buttons are pills, the time controller starts as a clock chip on desktop and mobile, In Orbit can collapse, and sort sits above the list. Remove light mode because who the fuck use light mode?
 - **2026-10-06** — Earth is drawn as a simplified vector land mesh instead of a baked country texture. Coastlines stay smooth when zoomed in, country borders are omitted, and tiny islands are left out so the globe loads faster.

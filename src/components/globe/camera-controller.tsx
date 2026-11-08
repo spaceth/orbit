@@ -4,7 +4,7 @@ import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { Vector3 } from "three";
+import { PerspectiveCamera, Vector3 } from "three";
 
 import { useSimulationTime } from "@/components/simulation-time-provider";
 import { getEcfPosition, type SatRec } from "@/lib/orbit";
@@ -14,11 +14,16 @@ interface CameraControllerProps {
   activeNoradId: number | null;
   earthFocused: boolean;
   earthFocusRequest: number;
+  groundView: boolean;
   satellites: { noradId: number; satrec: SatRec }[];
 }
 
 const EARTH_CENTER = new Vector3(0, 0, 0);
+const WORLD_UP = new Vector3(0, 1, 0);
 const DEFAULT_CAMERA_DISTANCE = 2.8;
+const ORBIT_FOV = 45;
+const ORBIT_NEAR = 0.1;
+const RETURN_NEAR = 0.001;
 
 function getFocusDistance(satRadius: number): number {
   if (satRadius > 5) {
@@ -31,10 +36,20 @@ function lerpFactor(delta: number, speed: number): number {
   return 1 - Math.exp(-speed * delta);
 }
 
+function setOrbitProjection(camera: PerspectiveCamera, near: number) {
+  if (camera.fov === ORBIT_FOV && camera.near === near) {
+    return;
+  }
+  camera.fov = ORBIT_FOV;
+  camera.near = near;
+  camera.updateProjectionMatrix();
+}
+
 export function CameraController({
   activeNoradId,
   earthFocused,
   earthFocusRequest,
+  groundView,
   satellites,
 }: CameraControllerProps) {
   const controlsRef = useRef<OrbitControlsImpl>(null);
@@ -46,6 +61,8 @@ export function CameraController({
   const focusSpeed = useRef(12);
   const isFocusing = useRef(false);
   const prevActiveId = useRef<number | null | undefined>(undefined);
+  const prevGroundView = useRef(groundView);
+  const tightNear = useRef(false);
   const { clockRef } = useSimulationTime();
 
   useEffect(() => {
@@ -73,6 +90,31 @@ export function CameraController({
     const controls = controlsRef.current;
     if (!controls) {
       return;
+    }
+
+    if (prevGroundView.current !== groundView) {
+      const leavingGround = prevGroundView.current && !groundView;
+      prevGroundView.current = groundView;
+      if (leavingGround) {
+        isFocusing.current = true;
+        focusSpeed.current = 3.2;
+        tightNear.current = true;
+        controls.target.set(0, 0, 0);
+      }
+    }
+
+    if (groundView) {
+      controls.enabled = false;
+      return;
+    }
+
+    controls.enabled = true;
+    camera.up.copy(WORLD_UP);
+    if (tightNear.current && camera.position.length() > 1.8) {
+      tightNear.current = false;
+    }
+    if (camera instanceof PerspectiveCamera) {
+      setOrbitProjection(camera, tightNear.current ? RETURN_NEAR : ORBIT_NEAR);
     }
 
     const shouldFocusEarth = activeNoradId === null || earthFocused;

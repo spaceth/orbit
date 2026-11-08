@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useMemo, useState } from "react";
 
 import { AppToggles } from "@/components/app-toggles";
+import { type ViewMode } from "@/components/view-mode-toggle";
 import { GlobeLoading } from "@/components/globe-loading";
 import { OrbitTimeline } from "@/components/orbit-timeline";
 import { SatellitePanel } from "@/components/satellite-panel";
@@ -14,6 +15,7 @@ import { useMySatellites } from "@/hooks/use-my-satellites";
 import { useSatelliteRouteSync } from "@/hooks/use-satellite-route";
 import { useSatellites } from "@/hooks/use-satellites";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { useObserverLocation } from "@/lib/observer-location";
 import { FUTURE_SATELLITES } from "@/lib/future-satellites";
 import { LEGACY_SATELLITES } from "@/lib/legacy-satellites";
 import { SATELLITES } from "@/lib/satellites";
@@ -31,6 +33,9 @@ export function OrbitViewer() {
   const [mobileReadingMode, setMobileReadingMode] = useState(false);
   const [earthFocused, setEarthFocused] = useState(false);
   const [earthFocusRequest, setEarthFocusRequest] = useState(0);
+  const [viewMode, setViewMode] = useState<ViewMode>("space");
+  const [groundEntry, setGroundEntry] = useState(0);
+  const observer = useObserverLocation();
   const handleMobileReadingModeChange = useCallback((readingMode: boolean) => {
     setMobileReadingMode(readingMode);
   }, []);
@@ -92,6 +97,16 @@ export function OrbitViewer() {
     hoverMyNoradId ?? hoverNoradId ?? activeMyNoradId ?? activeNoradId;
   const activeMyTelemetry =
     activeMyNoradId === null ? null : (telemetryById[activeMyNoradId] ?? null);
+
+  const changeViewMode = useCallback(
+    (mode: ViewMode) => {
+      if (mode === "ground" && viewMode !== "ground") {
+        setGroundEntry((entry) => entry + 1);
+      }
+      setViewMode(mode);
+    },
+    [viewMode],
+  );
 
   const clearEarthFocus = useCallback(() => {
     setEarthFocused(false);
@@ -211,7 +226,7 @@ export function OrbitViewer() {
     <SimulationTimeProvider>
       <div className="relative h-full min-h-dvh w-full overflow-hidden bg-background text-foreground transition-colors">
       <SpaceTHLogo />
-      <AppToggles />
+      <AppToggles viewMode={viewMode} onViewModeChange={changeViewMode} />
       <div className="satellite-shell max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:z-20 max-sm:pb-[env(safe-area-inset-bottom)] sm:contents">
         <SiteFooter />
         <SatellitePanel
@@ -271,6 +286,10 @@ export function OrbitViewer() {
           onDeselect={handleDeselect}
           earthFocused={earthFocused}
           earthFocusRequest={earthFocusRequest}
+          groundView={viewMode === "ground"}
+          groundEntry={groundEntry}
+          latitude={observer.lat}
+          longitude={observer.lon}
           onTelemetryUpdate={updateTelemetry}
         />
       </div>

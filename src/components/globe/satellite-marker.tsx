@@ -9,6 +9,7 @@ import { getEcfPosition, getTelemetry } from "@/lib/orbit";
 import { readSimulationMs } from "@/lib/simulation-time";
 import type { SatRec } from "@/lib/orbit";
 import { getWorldScaleForPixelDiameter } from "@/lib/screen-scale";
+import { skyDragBlocksClick } from "@/lib/sky-drag";
 import type { OmmData, SatelliteTelemetry } from "@/types/satellite";
 
 const SELECTED_MARKER_PIXEL_SIZE = 7;
@@ -97,6 +98,9 @@ export function SatelliteMarker({
         }}
         onClick={(event) => {
           event.stopPropagation();
+          if (skyDragBlocksClick()) {
+            return;
+          }
           onSelect();
         }}
       >

@@ -7,6 +7,7 @@ import { Vector3 } from "three";
 
 import { useSimulationTime } from "@/components/simulation-time-provider";
 import { getEcfPosition, isGeostationaryTrail, sampleOrbitTrail, type SatRec } from "@/lib/orbit";
+import { skyDragBlocksClick } from "@/lib/sky-drag";
 import { readSimulationMs } from "@/lib/simulation-time";
 
 const TRAIL_REFRESH_SECONDS = 0.5;
@@ -150,6 +151,9 @@ export function OrbitTrail({
             }}
             onClick={(event) => {
               event.stopPropagation();
+              if (skyDragBlocksClick()) {
+                return;
+              }
               onSelect();
             }}
           />

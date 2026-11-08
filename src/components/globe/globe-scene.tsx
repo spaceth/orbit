@@ -10,9 +10,11 @@ import type { OmmData, SatelliteTelemetry } from "@/types/satellite";
 import { CameraController } from "./camera-controller";
 import { CameraViewportOffset } from "./camera-viewport-offset";
 import { Earth } from "./earth";
+import { GroundCamera } from "./ground-camera";
 import { Moon } from "./moon";
 import { OrbitTrail } from "./orbit-trail";
 import { SatelliteMarker } from "./satellite-marker";
+import { Starfield } from "./starfield";
 
 interface GlobeSceneProps {
   omms: OmmData[];
@@ -27,6 +29,10 @@ interface GlobeSceneProps {
   onDeselect: () => void;
   earthFocused: boolean;
   earthFocusRequest: number;
+  groundView: boolean;
+  groundEntry: number;
+  latitude: number;
+  longitude: number;
   onTelemetryUpdate: (noradId: number, telemetry: SatelliteTelemetry) => void;
 }
 
@@ -42,6 +48,10 @@ function SceneContent({
   onEarthDoubleClick,
   earthFocused,
   earthFocusRequest,
+  groundView,
+  groundEntry,
+  latitude,
+  longitude,
   onTelemetryUpdate,
 }: GlobeSceneProps) {
   const satellites = useMemo(
@@ -57,10 +67,11 @@ function SceneContent({
   return (
     <>
       <color attach="background" args={[themeColors.canvasBackground]} />
+      {groundView ? <Starfield /> : null}
       <ambientLight intensity={0.9} />
       <directionalLight position={[5, 2, 5]} intensity={2} />
       <directionalLight position={[-3, -1, -2]} intensity={0.6} />
-      <Earth colors={themeColors} onDoubleClick={onEarthDoubleClick} />
+      <Earth colors={themeColors} plain={groundView} onDoubleClick={onEarthDoubleClick} />
       <Moon bodyColor={themeColors.muted} />
 
       {satellites.map((satellite) => {
@@ -103,7 +114,14 @@ function SceneContent({
         activeNoradId={activeNoradId}
         earthFocused={earthFocused}
         earthFocusRequest={earthFocusRequest}
+        groundView={groundView}
         satellites={satellites}
+      />
+      <GroundCamera
+        active={groundView}
+        entry={groundEntry}
+        latitude={latitude}
+        longitude={longitude}
       />
       <CameraViewportOffset mobileReadingMode={mobileReadingMode} />
     </>
