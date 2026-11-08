@@ -2,14 +2,30 @@ import { useSyncExternalStore } from "react";
 
 import cities from "@/data/cities.json";
 
+export type PlaceGroupId = "city" | "narit" | "gistda" | "dark-sky";
+
 export interface City {
   id: string;
+  group: PlaceGroupId;
   name: { en: string; th: string };
   lat: number;
   lon: number;
 }
 
 export const CITIES = cities as readonly City[];
+
+export function placeGroups(): { id: PlaceGroupId; places: City[] }[] {
+  const groups: { id: PlaceGroupId; places: City[] }[] = [];
+  for (const place of CITIES) {
+    const existing = groups.find((group) => group.id === place.group);
+    if (existing) {
+      existing.places.push(place);
+    } else {
+      groups.push({ id: place.group, places: [place] });
+    }
+  }
+  return groups;
+}
 
 export interface ObserverLocation {
   lat: number;
@@ -21,8 +37,8 @@ export interface ObserverLocation {
 const STORAGE_KEY = "orbit-ground-location";
 
 const DEFAULT_OBSERVER: ObserverLocation = {
-  lat: CITIES[0]?.lat ?? 13.7563,
-  lon: CITIES[0]?.lon ?? 100.5018,
+  lat: CITIES[0]?.lat ?? 13.75398,
+  lon: CITIES[0]?.lon ?? 100.50144,
   cityId: CITIES[0]?.id ?? null,
   nonce: 0,
 };
@@ -56,8 +72,8 @@ function readStored(): ObserverLocation | null {
     const cityId = typeof parsed.cityId === "string" ? parsed.cityId : null;
     const knownCity = cityId ? CITIES.find((city) => city.id === cityId) : undefined;
     return {
-      lat: clamp(parsed.lat, -90, 90),
-      lon: clamp(parsed.lon, -180, 180),
+      lat: knownCity ? knownCity.lat : clamp(parsed.lat, -90, 90),
+      lon: knownCity ? knownCity.lon : clamp(parsed.lon, -180, 180),
       cityId: knownCity ? knownCity.id : null,
       nonce: 1,
     };

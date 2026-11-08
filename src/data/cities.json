@@ -1,14 +1,72 @@
 [
   {
     "id": "bangkok",
+    "group": "city",
     "name": { "en": "Bangkok", "th": "กรุงเทพฯ" },
-    "lat": 13.7563,
-    "lon": 100.5018
+    "lat": 13.75398,
+    "lon": 100.50144
   },
   {
-    "id": "chiang-mai",
-    "name": { "en": "Chiang Mai", "th": "เชียงใหม่" },
-    "lat": 18.7883,
-    "lon": 98.9853
+    "id": "princess-sirindhorn-astropark",
+    "group": "narit",
+    "name": { "en": "Princess Sirindhorn AstroPark", "th": "อุทยานดาราศาสตร์สิรินธร" },
+    "lat": 18.854067,
+    "lon": 98.958292
+  },
+  {
+    "id": "thai-national-telescope",
+    "group": "narit",
+    "name": { "en": "Thai National Telescope", "th": "กล้องโทรทรรศน์แห่งชาติ" },
+    "lat": 18.573725,
+    "lon": 98.482239
+  },
+  {
+    "id": "thai-national-radio-telescope",
+    "group": "narit",
+    "name": { "en": "Thai National Radio Telescope", "th": "กล้องโทรทรรศน์วิทยุแห่งชาติ" },
+    "lat": 18.864323,
+    "lon": 99.216959
+  },
+  {
+    "id": "nakhon-ratchasima",
+    "group": "narit",
+    "name": { "en": "Nakhon Ratchasima", "th": "นครราชสีมา" },
+    "lat": 14.873963,
+    "lon": 102.027832
+  },
+  {
+    "id": "songkhla",
+    "group": "narit",
+    "name": { "en": "Songkhla", "th": "สงขลา" },
+    "lat": 7.158205,
+    "lon": 100.611225
+  },
+  {
+    "id": "khon-kaen",
+    "group": "narit",
+    "name": { "en": "Khon Kaen", "th": "ขอนแก่น" },
+    "lat": 16.761377,
+    "lon": 102.631789
+  },
+  {
+    "id": "chachoengsao",
+    "group": "narit",
+    "name": { "en": "Chachoengsao", "th": "ฉะเชิงเทรา" },
+    "lat": 13.593513,
+    "lon": 101.256158
+  },
+  {
+    "id": "space-krenovation-park",
+    "group": "gistda",
+    "name": { "en": "Space Krenovation Park", "th": "สเปซ ครีนโนเวชัน พาร์ค" },
+    "lat": 13.1,
+    "lon": 100.93
+  },
+  {
+    "id": "pailin-astro-park",
+    "group": "dark-sky",
+    "name": { "en": "Pailin Astro Park", "th": "ไพลิน แอสโตร พาร์ค" },
+    "lat": 14.69833,
+    "lon": 101.45465
   }
 ]

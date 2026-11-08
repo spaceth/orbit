@@ -85,6 +85,35 @@ The Earth in the scene is not just a plain sphere. It uses land data from Natura
 
 Satellite markers are designed to stay visible whether you zoom in or out. Their size is recalculated so they remain consistent on screen, instead of becoming too tiny when zoomed out or too large when zoomed in.
 
+## Ground view
+
+Ground view is the second camera, next to the language switch. Space view looks down at Earth. Ground view stands on the surface and looks up.
+
+The camera sits just above the ground at the chosen latitude and longitude, in a local frame of up, north, and east. It opens facing north, a little above the horizon. Dragging grabs the sky, so the stars stay under the pointer. The scroll wheel changes how wide the view is. From the ground, Earth is a plain dark gray sphere, which keeps the horizon simple while you look at the sky. The land mesh stays in Space view.
+
+Satellites use the same SGP4 positions as in Space view. Selecting one turns the camera toward it and keeps it centered as the simulation clock moves. Dragging the sky releases that tracking, and selecting the satellite again starts it again. The time controller still moves the sky, the Moon, the satellites, and the trails together.
+
+### Where you stand
+
+The location box starts collapsed. Its places are grouped by type and stored in `src/data/cities.json`:
+
+| Group | Places |
+| --- | --- |
+| City | Bangkok |
+| NARIT | Princess Sirindhorn AstroPark, Thai National Telescope, Thai National Radio Telescope, Nakhon Ratchasima, Songkhla, Khon Kaen, Chachoengsao |
+| GISTDA | Space Krenovation Park |
+| Dark Sky Area | Pailin Astro Park |
+
+**My location** uses the browser’s geolocation. Typed latitude and longitude are kept in this browser under `orbit-ground-location`.
+
+### Where the sky comes from
+
+Stars to magnitude 6 come from **XHIP**, the Extended Hipparcos Compilation (Anderson & Francis, 2012), as published in Olaf Frohn’s [d3-celestial](https://github.com/ofrohn/d3-celestial) (`stars.6.json`). Constellation lines are the IAU figures, with Frohn’s line adjustments, from the same project (`constellations.lines.json`, BSD-3-Clause). Orbit keeps a compact copy in `src/data/skymap.json` as J2000 right ascension and declination.
+
+Each frame, satellite.js supplies Greenwich sidereal time and rotates that catalog into the same Earth-fixed frame the satellites already use, so the sky turns with the simulation clock.
+
+The Moon uses a low-precision Meeus-style geocentric position in `src/lib/moon.ts`. That position is already in the Earth-fixed frame, so the Moon appears in both views.
+
 ## What can Orbit do?
 
 Orbit can show multiple Thai satellites at the same time on a 3D Earth. Users can select a satellite to see more details, including its position, altitude, velocity, mission information, launch date, and operator.
@@ -114,7 +143,7 @@ Orbit starts with Thai satellites that have NORAD IDs and available OMM data, in
 
 ### Changelog
 
-- **2026-11-08** — Add a Ground view next to the language switch. It looks up from the user's location, or from Bangkok, Chiang Mai, or typed coordinates, and the time controller still moves the sky, satellites, and trails together. Stars to magnitude 6 come from the XHIP Hipparcos compilation (Anderson & Francis, 2012), and the constellation lines are the IAU figures as drawn in Olaf Frohn's d3-celestial. From the ground, Earth is a plain dark gray sphere.
+- **2026-11-08** — Add a Ground view next to the language switch. The camera stands at a listed place, the browser location, or typed coordinates, and keeps a selected satellite centered until the sky is dragged. Stars to magnitude 6 come from the XHIP Hipparcos compilation (Anderson & Francis, 2012), and the constellation lines are the IAU figures as drawn in Olaf Frohn's d3-celestial. From the ground, Earth is a plain dark gray sphere. Places are grouped as City, NARIT, GISTDA, and Dark Sky Area. See **Ground view**.
 - **2026-11-07** — Add My Satellites, stored only in this browser. Enter a NORAD ID or a TLE to track any catalog object with the same OMM feed, rename it, and click a NORAD ID to copy it.
 - **2026-10-19** — Major UI update. Panels are frosted black, English type is Poppins, boxes stay square while buttons are pills, the time controller starts as a clock chip on desktop and mobile, In Orbit can collapse, and sort sits above the list. Remove light mode because who the fuck use light mode?
 - **2026-10-06** — Earth is drawn as a simplified vector land mesh instead of a baked country texture. Coastlines stay smooth when zoomed in, country borders are omitted, and tiny islands are left out so the globe loads faster.

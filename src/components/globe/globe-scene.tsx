@@ -31,6 +31,7 @@ interface GlobeSceneProps {
   earthFocusRequest: number;
   groundView: boolean;
   groundEntry: number;
+  groundTrackRequest: number;
   latitude: number;
   longitude: number;
   onTelemetryUpdate: (noradId: number, telemetry: SatelliteTelemetry) => void;
@@ -50,6 +51,7 @@ function SceneContent({
   earthFocusRequest,
   groundView,
   groundEntry,
+  groundTrackRequest,
   latitude,
   longitude,
   onTelemetryUpdate,
@@ -122,6 +124,9 @@ function SceneContent({
         entry={groundEntry}
         latitude={latitude}
         longitude={longitude}
+        activeNoradId={activeNoradId}
+        trackRequest={groundTrackRequest}
+        satellites={satellites}
       />
       <CameraViewportOffset mobileReadingMode={mobileReadingMode} />
     </>

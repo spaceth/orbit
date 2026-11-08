@@ -4,14 +4,27 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import { PerspectiveCamera, Quaternion, Vector3 } from "three";
 
+import { useSimulationTime } from "@/components/simulation-time-provider";
+import { getEcfPosition, type SatRec } from "@/lib/orbit";
+import { readSimulationMs } from "@/lib/simulation-time";
 import { clearSkyDrag, markSkyDrag } from "@/lib/sky-drag";
-import { lookDirection, observerFrame, type ObserverFrame } from "@/lib/sky";
+import {
+  directionToAzimuthElevation,
+  dragLookByPointer,
+  lookDirection,
+  observerFrame,
+  slewLook,
+  type ObserverFrame,
+} from "@/lib/sky";
 
 interface GroundCameraProps {
   active: boolean;
   entry: number;
   latitude: number;
   longitude: number;
+  activeNoradId: number | null;
+  trackRequest: number;
+  satellites: { noradId: number; satrec: SatRec }[];
 }
 
 const INITIAL_AZIMUTH = 0;
@@ -27,11 +40,23 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-export function GroundCamera({ active, entry, latitude, longitude }: GroundCameraProps) {
+export function GroundCamera({
+  active,
+  entry,
+  latitude,
+  longitude,
+  activeNoradId,
+  trackRequest,
+  satellites,
+}: GroundCameraProps) {
   const { camera, gl } = useThree();
+  const { clockRef } = useSimulationTime();
   const azimuth = useRef(INITIAL_AZIMUTH);
   const elevation = useRef(INITIAL_ELEVATION);
   const fov = useRef(DEFAULT_FOV);
+  const tracking = useRef(false);
+  const seenNoradId = useRef<number | null>(null);
+  const seenTrackRequest = useRef(trackRequest);
   const seenEntry = useRef(0);
   const blend = useRef(1);
   const startPosition = useRef(new Vector3());
@@ -54,6 +79,8 @@ export function GroundCamera({ active, entry, latitude, longitude }: GroundCamer
     const element = gl.domElement;
     let dragging = false;
     let moved = false;
+    let originX = 0;
+    let originY = 0;
     let lastX = 0;
     let lastY = 0;
 
@@ -63,6 +90,8 @@ export function GroundCamera({ active, entry, latitude, longitude }: GroundCamer
       }
       dragging = true;
       moved = false;
+      originX = event.clientX;
+      originY = event.clientY;
       lastX = event.clientX;
       lastY = event.clientY;
     };
@@ -75,12 +104,29 @@ export function GroundCamera({ active, entry, latitude, longitude }: GroundCamer
       const dy = event.clientY - lastY;
       lastX = event.clientX;
       lastY = event.clientY;
-      if (Math.abs(dx) + Math.abs(dy) > 3) {
+      if (Math.hypot(event.clientX - originX, event.clientY - originY) > 3) {
         moved = true;
+        tracking.current = false;
         markSkyDrag();
       }
-      azimuth.current -= dx * 0.18;
-      elevation.current = clamp(elevation.current - dy * 0.15, MIN_ELEVATION, MAX_ELEVATION);
+      if (!moved) {
+        return;
+      }
+      const rect = element.getBoundingClientRect();
+      const next = dragLookByPointer(
+        observerFrame(latitude, longitude, frame.current),
+        azimuth.current,
+        elevation.current,
+        dx,
+        dy,
+        rect.width,
+        rect.height,
+        fov.current,
+        MIN_ELEVATION,
+        MAX_ELEVATION,
+      );
+      azimuth.current = next.azimuth;
+      elevation.current = next.elevation;
     };
 
     const onPointerUp = () => {
@@ -109,7 +155,7 @@ export function GroundCamera({ active, entry, latitude, longitude }: GroundCamer
       element.removeEventListener("wheel", onWheel);
       dragging = false;
     };
-  }, [active, gl]);
+  }, [active, gl, latitude, longitude]);
 
   useFrame((_, delta) => {
     if (!active) {
@@ -124,20 +170,56 @@ export function GroundCamera({ active, entry, latitude, longitude }: GroundCamer
     }
 
     const basis = observerFrame(latitude, longitude, frame.current);
-    const direction = lookDirection(basis, azimuth.current, elevation.current, look.current);
-    lookTarget.current.copy(basis.position).add(direction);
-
-    if (seenEntry.current !== entry) {
+    const entered = seenEntry.current !== entry;
+    if (entered) {
       seenEntry.current = entry;
-      azimuth.current = INITIAL_AZIMUTH;
-      elevation.current = INITIAL_ELEVATION;
       fov.current = DEFAULT_FOV;
       startPosition.current.copy(camera.position);
       startQuaternion.current.copy(camera.quaternion);
       blend.current = 0;
-      lookDirection(basis, azimuth.current, elevation.current, look.current);
-      lookTarget.current.copy(basis.position).add(look.current);
+      seenNoradId.current = activeNoradId;
+      seenTrackRequest.current = trackRequest;
+      tracking.current = activeNoradId !== null;
+      if (!tracking.current) {
+        azimuth.current = INITIAL_AZIMUTH;
+        elevation.current = INITIAL_ELEVATION;
+      }
+    } else if (
+      seenNoradId.current !== activeNoradId ||
+      seenTrackRequest.current !== trackRequest
+    ) {
+      seenNoradId.current = activeNoradId;
+      seenTrackRequest.current = trackRequest;
+      tracking.current = activeNoradId !== null;
     }
+
+    if (tracking.current && activeNoradId !== null) {
+      const satellite = satellites.find((item) => item.noradId === activeNoradId);
+      const position = satellite
+        ? getEcfPosition(satellite.satrec, new Date(readSimulationMs(clockRef.current)))
+        : null;
+      const aim = position ? directionToAzimuthElevation(basis, position) : null;
+      if (aim) {
+        const targetElevation = clamp(aim.elevation, MIN_ELEVATION, MAX_ELEVATION);
+        if (entered) {
+          azimuth.current = aim.azimuth;
+          elevation.current = targetElevation;
+        } else {
+          const next = slewLook(
+            azimuth.current,
+            elevation.current,
+            aim.azimuth,
+            targetElevation,
+            Math.min(delta, 0.05),
+          );
+          azimuth.current = next.azimuth;
+          elevation.current = next.elevation;
+        }
+      }
+    }
+
+    const direction = lookDirection(basis, azimuth.current, elevation.current, look.current);
+    lookTarget.current.copy(basis.position).add(direction);
 
     camera.up.copy(basis.up);
     camera.position.copy(basis.position);

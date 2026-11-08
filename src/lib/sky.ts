@@ -73,6 +73,58 @@ export function observerFrame(latDeg: number, lonDeg: number, frame?: ObserverFr
   return result;
 }
 
+const aimOffset = new Vector3();
+const aimHorizontal = new Vector3();
+
+/** Azimuth from north toward east, and elevation, of a scene point from the observer. */
+export function directionToAzimuthElevation(
+  frame: ObserverFrame,
+  target: Vector3,
+): { azimuth: number; elevation: number } | null {
+  aimOffset.copy(target).sub(frame.position);
+  if (aimOffset.lengthSq() < 1e-10) {
+    return null;
+  }
+  aimOffset.normalize();
+  const sinElevation = Math.min(1, Math.max(-1, aimOffset.dot(frame.up)));
+  const elevation = Math.asin(sinElevation) / DEG;
+  aimHorizontal.copy(aimOffset).addScaledVector(frame.up, -sinElevation);
+  if (aimHorizontal.lengthSq() < 1e-10) {
+    return { azimuth: 0, elevation };
+  }
+  return {
+    azimuth: Math.atan2(aimHorizontal.dot(frame.east), aimHorizontal.dot(frame.north)) / DEG,
+    elevation,
+  };
+}
+
+function wrapDegrees(value: number): number {
+  return ((((value + 180) % 360) + 360) % 360) - 180;
+}
+
+/** Move the ground look toward a target. The step is a visual angle, so azimuth slows near the zenith. */
+export function slewLook(
+  azimuthDeg: number,
+  elevationDeg: number,
+  targetAzimuthDeg: number,
+  targetElevationDeg: number,
+  deltaSeconds: number,
+  degreesPerSecond = 110,
+): { azimuth: number; elevation: number } {
+  const deltaAzimuth = wrapDegrees(targetAzimuthDeg - azimuthDeg);
+  const deltaElevation = targetElevationDeg - elevationDeg;
+  const angular = Math.hypot(deltaAzimuth * Math.cos(elevationDeg * DEG), deltaElevation);
+  const step = Math.max(0, degreesPerSecond * deltaSeconds);
+  if (angular < 0.05 || angular <= step) {
+    return { azimuth: wrapDegrees(targetAzimuthDeg), elevation: targetElevationDeg };
+  }
+  const fraction = step / angular;
+  return {
+    azimuth: wrapDegrees(azimuthDeg + deltaAzimuth * fraction),
+    elevation: elevationDeg + deltaElevation * fraction,
+  };
+}
+
 export function lookDirection(
   frame: ObserverFrame,
   azimuthDeg: number,
@@ -87,4 +139,62 @@ export function lookDirection(
     .multiplyScalar(Math.cos(azimuth) * cosElevation)
     .addScaledVector(frame.east, Math.sin(azimuth) * cosElevation)
     .addScaledVector(frame.up, Math.sin(elevation));
+}
+
+const dragLook = new Vector3();
+const dragRight = new Vector3();
+const dragHorizontal = new Vector3();
+
+/**
+ * Turn the ground view so the sky stays under the pointer. dx and dy are CSS
+ * pixels, positive right and down. Yaw is scaled by 1/cos(elevation) so a
+ * horizontal drag moves the sky by the same angle the pointer crossed.
+ */
+export function dragLookByPointer(
+  frame: ObserverFrame,
+  azimuthDeg: number,
+  elevationDeg: number,
+  dx: number,
+  dy: number,
+  width: number,
+  height: number,
+  fovDeg: number,
+  minElevation = -8,
+  maxElevation = 88,
+): { azimuth: number; elevation: number } {
+  if (width < 1 || height < 1 || (dx === 0 && dy === 0)) {
+    return { azimuth: azimuthDeg, elevation: elevationDeg };
+  }
+
+  const elevation = elevationDeg * DEG;
+  const cosElevation = Math.max(0.02, Math.cos(elevation));
+  const verticalFov = fovDeg * DEG;
+  const halfWidth = Math.tan(verticalFov / 2) * (width / height);
+  const yaw = Math.atan(halfWidth * ((2 * dx) / width)) / cosElevation;
+  const pitchRoomUp = maxElevation * DEG - elevation;
+  const pitchRoomDown = elevation - minElevation * DEG;
+  const pitch = Math.min(
+    pitchRoomUp,
+    Math.max(-pitchRoomDown, Math.atan(Math.tan(verticalFov / 2) * ((2 * dy) / height))),
+  );
+
+  const look = lookDirection(frame, azimuthDeg, elevationDeg, dragLook);
+  look.applyAxisAngle(frame.up, yaw);
+  const right = dragRight.crossVectors(look, frame.up);
+  if (right.lengthSq() > 1e-10) {
+    right.normalize();
+    look.applyAxisAngle(right, pitch);
+  }
+
+  const sinElevation = Math.min(1, Math.max(-1, look.dot(frame.up)));
+  const horizontal = dragHorizontal.copy(look).addScaledVector(frame.up, -sinElevation);
+  const azimuth =
+    horizontal.lengthSq() > 1e-10
+      ? Math.atan2(horizontal.dot(frame.east), horizontal.dot(frame.north)) / DEG
+      : azimuthDeg;
+
+  return {
+    azimuth,
+    elevation: Math.min(maxElevation, Math.max(minElevation, Math.asin(sinElevation) / DEG)),
+  };
 }

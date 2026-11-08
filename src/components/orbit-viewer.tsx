@@ -35,6 +35,7 @@ export function OrbitViewer() {
   const [earthFocusRequest, setEarthFocusRequest] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>("space");
   const [groundEntry, setGroundEntry] = useState(0);
+  const [groundTrackRequest, setGroundTrackRequest] = useState(0);
   const observer = useObserverLocation();
   const handleMobileReadingModeChange = useCallback((readingMode: boolean) => {
     setMobileReadingMode(readingMode);
@@ -151,6 +152,7 @@ export function OrbitViewer() {
 
   const handleSelectNoradId = useCallback(
     (noradId: number) => {
+      setGroundTrackRequest((request) => request + 1);
       focusSatellite();
       const mineOnly =
         mySatellites.some((satellite) => satellite.noradId === noradId) &&
@@ -176,6 +178,7 @@ export function OrbitViewer() {
 
   const handleSelectMyNoradId = useCallback(
     (noradId: number) => {
+      setGroundTrackRequest((request) => request + 1);
       focusSatellite();
       deselect();
       selectMyNoradId(noradId);
@@ -288,6 +291,7 @@ export function OrbitViewer() {
           earthFocusRequest={earthFocusRequest}
           groundView={viewMode === "ground"}
           groundEntry={groundEntry}
+          groundTrackRequest={groundTrackRequest}
           latitude={observer.lat}
           longitude={observer.lon}
           onTelemetryUpdate={updateTelemetry}
