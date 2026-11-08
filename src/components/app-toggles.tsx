@@ -20,7 +20,7 @@ export function AppToggles({ viewMode, onViewModeChange }: AppTogglesProps) {
           <LocaleToggle />
         </div>
       </div>
-      {viewMode === "ground" ? <GroundLocation /> : null}
+      <GroundLocation />
     </div>
   );
 }

@@ -44,6 +44,12 @@ export function normalizeOmm(raw: CelestrakOmmJson): OmmData {
     classificationType: raw.CLASSIFICATION_TYPE ?? "U",
     elementSetNo: toNumber(raw.ELEMENT_SET_NO),
     revAtEpoch: toNumber(raw.REV_AT_EPOCH ?? 0),
+    raw: Object.fromEntries(
+      Object.entries(raw).filter((entry): entry is [string, string | number] => {
+        const value = entry[1];
+        return typeof value === "string" || typeof value === "number";
+      }),
+    ),
   };
 }
 

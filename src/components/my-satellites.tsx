@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { CopyNoradId } from "@/components/copy-norad-id";
+import { PassPrediction } from "@/components/pass-prediction";
 import { useLocale } from "@/components/locale-provider";
 import { VisibilityIcon } from "@/components/visibility-icon";
 import type { AddMySatelliteResult } from "@/hooks/use-my-satellites";
@@ -309,6 +310,7 @@ export function MySatelliteDetail({
           {pending ? ui.computingPosition : ui.unavailable}
         </p>
       )}
+      {omm ? <PassPrediction omm={omm} name={name} /> : null}
     </>
   );
 }

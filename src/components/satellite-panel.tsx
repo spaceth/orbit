@@ -34,6 +34,7 @@ import type { AddMySatelliteResult } from "@/hooks/use-my-satellites";
 import type { MySatellite } from "@/lib/my-satellites";
 
 import { OperationCounter } from "./operation-counter";
+import { PassPrediction } from "./pass-prediction";
 import { VisibilityIcon } from "./visibility-icon";
 
 interface SatellitePanelProps {
@@ -635,6 +636,8 @@ export function SatellitePanel({
               ) : (
                 <p className="mt-5 text-sm text-muted">{ui.computingPosition}</p>
               )}
+
+              <PassPrediction omm={activeOmm} name={activeSatellite.name} />
             </>
           ) : null}
         </div>

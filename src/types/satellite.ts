@@ -17,6 +17,8 @@ export interface OmmData {
   classificationType: string;
   elementSetNo: number;
   revAtEpoch: number;
+  /** Original OMM record from the source, when a live fetch provided one. */
+  raw?: Record<string, string | number>;
 }
 
 export interface SatelliteTelemetry {
