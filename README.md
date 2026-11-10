@@ -14,9 +14,9 @@ An **OMM** (Orbit Mean-Elements Message) is the same snapshot with a label on ev
 
 ## What is an OMM?
 
-Think of an OMM as a photograph of a satellite’s orbit, taken at one moment. The photograph is not a list of future positions. It is the shape of the path, plus where the satellite was along that path when the photo was taken.
+Think of an OMM as a snapshot of a satellite’s orbit, taken at one moment. The snapshot is not a list of future positions. It is the shape of the path, plus where the satellite was along that path when the snapshot was taken.
 
-From that photo, a calculator can run the orbit forward or backward: a few minutes from now, tomorrow, or earlier today. Orbit downloads the latest photo and does that calculation in the browser. The **Download OMM** button on a satellite saves the record the site is using.
+From that snapshot, a calculator can run the orbit forward or backward: a few minutes from now, tomorrow, or earlier today. Orbit downloads the latest snapshot and does that calculation in the browser. The **Download OMM** button on a satellite saves the record the site is using.
 
 ### What a record looks like
 
@@ -50,7 +50,7 @@ The bundled copy in `src/data/omm-fallback.json` is the same record with shorter
 
 **OBJECT_NAME** and **NORAD_CAT_ID** are the name and the catalog number. `58016` is THEOS-2’s card number in the public catalog. **OBJECT_ID** `2023-155A` is the international designator: launched in 2023, the 155th launch of that year, piece A of that launch.
 
-**EPOCH** is the time on the photograph. Every other number describes the orbit at that instant. SGP4 then carries the photograph to “now,” or to whatever time the timeline is showing.
+**EPOCH** is the time on the snapshot. Every other number describes the orbit at that instant. SGP4 then carries the snapshot to “now,” or to whatever time the timeline is showing.
 
 **MEAN_MOTION** `14.817` is how many laps the satellite makes in one day. Divide 24 hours by that number and the lap is about 97 minutes. A satellite close to Earth laps quickly. One that seems to hang over one spot on Earth laps about once a day.
 
@@ -60,17 +60,17 @@ The bundled copy in `src/data/omm-fallback.json` is the same record with shorter
 
 **RA_OF_ASC_NODE** `320.6123` degrees says which way the tilted oval is turned. Picture a hoop stood almost upright around the Earth. This number spins the hoop until the place where the satellite crosses the equator going north lines up with that direction.
 
-**ARG_OF_PERICENTER** `90.3925` degrees says where, along the oval, the closest point to Earth sits. **MEAN_ANOMALY** `269.7463` degrees says how far around the lap the satellite was when the photo was taken. Zero means “at the closest point.” 180 means “at the farthest.” 270 means about three quarters of the way around, which is where THEOS-2 was in this snapshot.
+**ARG_OF_PERICENTER** `90.3925` degrees says where, along the oval, the closest point to Earth sits. **MEAN_ANOMALY** `269.7463` degrees says how far around the lap the satellite was when the snapshot was taken. Zero means “at the closest point.” 180 means “at the farthest.” 270 means about three quarters of the way around, which is where THEOS-2 was in this snapshot.
 
 **BSTAR** stands in for air drag. A few hundred kilometers up there is still a thin trace of air, and it slowly tugs on the satellite. **MEAN_MOTION_DOT** says how the lap rate is changing because of that tug. **MEAN_MOTION_DDOT** is a finer correction and is usually zero.
 
-**REV_AT_EPOCH** `15767` is the lap count on the photograph: THEOS-2 had gone around Earth that many times.
+**REV_AT_EPOCH** `15767` is the lap count on the snapshot: THEOS-2 had gone around Earth that many times.
 
 **CLASSIFICATION_TYPE** `U` means unclassified. **EPHEMERIS_TYPE** `0` means “use the usual SGP4 calculator.” **ELEMENT_SET_NO** is which update of the file this is.
 
-## How the site gets a position from that photo
+## How the site gets a position from that snapshot
 
-**SGP4** is the film projector. Give it the photograph and a time, and it estimates where the satellite should be. The air, the Sun, and the Moon keep nudging the real satellite, so a snapshot from today is sharp and a snapshot from months ago has drifted. That is why Orbit prefers a fresh OMM and keeps a spare copy for when the network fails.
+**SGP4** takes the snapshot and a time, and estimates where the satellite should be. The air, the Sun, and the Moon keep nudging the real satellite, so a snapshot from today stays close and a snapshot from months ago has drifted. That is why Orbit prefers a fresh OMM and keeps a spare copy for when the network fails.
 
 **satellite.js** is the JavaScript library that reads the JSON and runs SGP4.
 
@@ -80,7 +80,7 @@ The bundled copy in `src/data/omm-fallback.json` is the same record with shorter
 4. Orbit turns that position into latitude, longitude, height, speed, and a point in the 3D scene.
 5. The point is drawn on the Earth, with a line for the path.
 
-OMM is the photograph. SGP4 is the projector. satellite.js is the projector’s engine in the browser.
+OMM is the snapshot. SGP4 is the calculator. satellite.js runs that calculator in the browser.
 
 ## Where the OMM comes from
 
