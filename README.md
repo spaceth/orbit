@@ -187,6 +187,22 @@ Satellites whose main mission has ended are under **Legacy**, for reference. The
 
 Update these lists in `src/data/satellites.ts` and `src/data/legacy-satellites.ts`.
 
+## Data sources
+
+These are the sources behind the globe, the sky, and the satellite list. A license is named when the publisher states one.
+
+**[CelesTrak](https://celestrak.org/)** supplies the GP orbit snapshots, as OMM JSON, and the bundled copy in `src/data/omm-fallback.json` comes from the same feed. CelesTrak does not publish a named data license. Its stated aim is to keep the data freely available, and reuse follows the [usage policy](https://celestrak.org/usage-policy.php): download only the records you need, and not more often than the data is updated.
+
+**[Natural Earth](https://www.naturalearthdata.com/)** 1:10m land, through the [world-atlas](https://github.com/topojson/world-atlas) file `land-10m.json`, is the coastline mesh in `public/data/land-mesh.bin`. Natural Earth is in the **public domain**. [Terms of use](https://www.naturalearthdata.com/about/terms-of-use/). Credit is not required.
+
+**XHIP**, the Extended Hipparcos Compilation (Anderson & Francis, 2012, VizieR [V/137D](https://cdsarc.cds.unistra.fr/viz-bin/cat/V/137D)), supplies the stars to magnitude 6. Orbit uses the copy published in [d3-celestial](https://github.com/ofrohn/d3-celestial) as `stars.6.json`, kept in `src/data/skymap.json`. [VizieR](https://vizier.cds.unistra.fr/viz-bin/cite/J/A+A/612/A1) says catalogue data are free to use in a scientific context when the original authors and the paper are cited. Cite Anderson, E. & Francis, C. 2012, Astronomy Letters, 38, 331. The d3-celestial project that packages the file is **BSD-3-Clause**.
+
+**IAU constellation figures**, with line adjustments by Olaf Frohn, supply the constellation lines in the same `src/data/skymap.json`. The copy is d3-celestial’s `constellations.lines.json`, from the [IAU constellation page](https://www.iau.org/public/themes/constellations/). That page does not state a separate data license. The d3-celestial packaging is **BSD-3-Clause**.
+
+The **Moon** is not a downloaded catalog. `src/lib/moon.ts` computes a low-precision position from published formulas in the style of Jean Meeus, *Astronomical Algorithms*. The book is copyrighted. Orbit ships the calculation, not an ephemeris file.
+
+The **place list** in `src/data/cities.json` is compiled for Orbit from the published coordinates of those sites. **My location** uses the position the browser reports. The **satellite registry**, including the Thai and English descriptions, is written for Orbit in `src/data/satellites.ts`, `src/data/legacy-satellites.ts`, `src/data/future-satellites.ts`, and `src/data/satellite-i18n.ts`.
+
 ## Tech stack
 
 **Next.js** is the site framework: the pages, and the server route that fetches OMM data. **React** is the interface. **TypeScript** is the language. **Three.js** and **React Three Fiber** draw the globe. **satellite.js** runs SGP4. **Tailwind CSS** styles the panels.

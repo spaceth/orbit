@@ -187,6 +187,22 @@ Orbit เริ่มจากดาวเทียมไทยที่มี N
 
 อัปเดตรายการได้จาก `src/data/satellites.ts` และ `src/data/legacy-satellites.ts`
 
+## แหล่งข้อมูล
+
+รายการนี้คือแหล่งที่อยู่เบื้องหลังลูกโลก ท้องฟ้า และรายการดาวเทียม หากผู้เผยแพร่ระบุสัญญาอนุญาตไว้ จะบอกไว้ตรงนี้
+
+**[CelesTrak](https://celestrak.org/)** ให้ snapshot วงโคจรแบบ GP ในรูป OMM JSON และสำเนาใน `src/data/omm-fallback.json` มาจากฟีดเดียวกัน CelesTrak ไม่ได้เผยแพร่สัญญาอนุญาตข้อมูลในชื่อเฉพาะ จุดประสงค์ที่ประกาศไว้คือให้ข้อมูลใช้ได้โดยเสรี และการนำไปใช้เป็นไปตาม [นโยบายการใช้งาน](https://celestrak.org/usage-policy.php) คือดาวน์โหลดเฉพาะระเบียนที่ต้องการ และไม่ถี่กว่าจังหวะที่ข้อมูลอัปเดต
+
+**[Natural Earth](https://www.naturalearthdata.com/)** แผ่นดินมาตราส่วน 1:10m ผ่านไฟล์ `land-10m.json` ของ [world-atlas](https://github.com/topojson/world-atlas) คือ mesh ชายฝั่งใน `public/data/land-mesh.bin` Natural Earth อยู่ใน **สาธารณสมบัติ** (public domain) [เงื่อนไขการใช้งาน](https://www.naturalearthdata.com/about/terms-of-use/) ไม่จำเป็นต้องให้เครดิต
+
+**XHIP** หรือ Extended Hipparcos Compilation (Anderson & Francis, 2012, VizieR [V/137D](https://cdsarc.cds.unistra.fr/viz-bin/cat/V/137D)) ให้ดาวถึงโชติมาตร 6 Orbit ใช้สำเนาที่เผยแพร่ใน [d3-celestial](https://github.com/ofrohn/d3-celestial) ชื่อ `stars.6.json` เก็บไว้ใน `src/data/skymap.json` [VizieR](https://vizier.cds.unistra.fr/viz-bin/cite/J/A+A/612/A1) ระบุว่าข้อมูลบัญชีดาวใช้ได้ฟรีในบริบททางวิทยาศาสตร์ เมื่ออ้างผู้เขียนต้นทางและบทความ อ้างเป็น Anderson, E. & Francis, C. 2012, Astronomy Letters, 38, 331 โปรเจกต์ d3-celestial ที่จัดไฟล์นี้ใช้สัญญา **BSD-3-Clause**
+
+**รูปกลุ่มดาวของสหพันธ์ดาราศาสตร์สากล (IAU)** พร้อมการปรับเส้นของ Olaf Frohn คือเส้นกลุ่มดาวใน `src/data/skymap.json` ชุดเดียวกัน สำเนามาจาก `constellations.lines.json` ของ d3-celestial ซึ่งอ้าง [หน้ากลุ่มดาวของ IAU](https://www.iau.org/public/themes/constellations/) หน้านั้นไม่ได้ระบุสัญญาอนุญาตข้อมูลแยกต่างหาก ตัวโปรเจกต์ d3-celestial ใช้สัญญา **BSD-3-Clause**
+
+**ดวงจันทร์** ไม่ได้มาจากบัญชีที่ดาวน์โหลด `src/lib/moon.ts` คำนวณตำแหน่งความละเอียดต่ำจากสูตรที่เผยแพร่ในแนวของ Jean Meeus, *Astronomical Algorithms* หนังสือนั้นมีลิขสิทธิ์ Orbit ใส่เฉพาะการคำนวณ ไม่ได้แนบไฟล์ตารางตำแหน่ง
+
+**รายการสถานที่** ใน `src/data/cities.json` จัดทำขึ้นสำหรับ Orbit จากพิกัดที่เผยแพร่ของสถานที่เหล่านั้น **ตำแหน่งของฉัน** ใช้ตำแหน่งที่เบราว์เซอร์รายงาน **ทะเบียนดาวเทียม** รวมคำอธิบายภาษาไทยและอังกฤษ เขียนขึ้นสำหรับ Orbit ใน `src/data/satellites.ts`, `src/data/legacy-satellites.ts`, `src/data/future-satellites.ts` และ `src/data/satellite-i18n.ts`
+
 ## Tech stack
 
 **Next.js** คือโครงของเว็บ ทั้งหน้าเพจและเส้นทางบนเซิร์ฟเวอร์ที่ดึง OMM **React** คืออินเทอร์เฟซ **TypeScript** คือภาษา **Three.js** กับ **React Three Fiber** วาดลูกโลก **satellite.js** รัน SGP4 **Tailwind CSS** จัดสไตล์พาเนล
