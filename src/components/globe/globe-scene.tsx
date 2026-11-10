@@ -35,6 +35,7 @@ interface GlobeSceneProps {
   groundTrackRequest: number;
   latitude: number;
   longitude: number;
+  locationFocusRequest: number;
   onTelemetryUpdate: (noradId: number, telemetry: SatelliteTelemetry) => void;
 }
 
@@ -55,6 +56,7 @@ function SceneContent({
   groundTrackRequest,
   latitude,
   longitude,
+  locationFocusRequest,
   onTelemetryUpdate,
 }: GlobeSceneProps) {
   const satellites = useMemo(
@@ -123,6 +125,9 @@ function SceneContent({
         earthFocused={earthFocused}
         earthFocusRequest={earthFocusRequest}
         groundView={groundView}
+        latitude={latitude}
+        longitude={longitude}
+        locationFocusRequest={locationFocusRequest}
         satellites={satellites}
       />
       <GroundCamera

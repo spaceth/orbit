@@ -8,6 +8,7 @@ import {
   getObserver,
   markAutoLocateAttempted,
   placeGroups,
+  selectObserverLocation,
   setObserverLocation,
   shouldAutoLocate,
   useObserverLocation,
@@ -109,7 +110,7 @@ export function GroundLocation() {
                     aria-pressed={isActive}
                     onClick={() => {
                       setFailed(false);
-                      setObserverLocation({
+                      selectObserverLocation({
                         lat: place.lat,
                         lon: place.lon,
                         cityId: place.id,
@@ -131,7 +132,7 @@ export function GroundLocation() {
       </div>
       <button
         type="button"
-        onClick={() => locate(setFailed)}
+        onClick={() => locate(setFailed, true)}
         className="round-control pressable mt-3 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-muted hover:text-foreground"
       >
         {ui.groundUseLocation}
@@ -194,7 +195,7 @@ export function GroundLocation() {
   );
 }
 
-function locate(onFail?: (failed: boolean) => void) {
+function locate(onFail?: (failed: boolean) => void, focus = false) {
   if (typeof navigator === "undefined" || !navigator.geolocation) {
     onFail?.(true);
     return;
@@ -203,7 +204,8 @@ function locate(onFail?: (failed: boolean) => void) {
   navigator.geolocation.getCurrentPosition(
     (position) => {
       onFail?.(false);
-      setObserverLocation({
+      const commit = focus ? selectObserverLocation : setObserverLocation;
+      commit({
         lat: position.coords.latitude,
         lon: position.coords.longitude,
         cityId: null,

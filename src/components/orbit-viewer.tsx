@@ -15,7 +15,7 @@ import { useMySatellites } from "@/hooks/use-my-satellites";
 import { useSatelliteRouteSync } from "@/hooks/use-satellite-route";
 import { useSatellites } from "@/hooks/use-satellites";
 import { useThemeColors } from "@/hooks/use-theme-colors";
-import { useObserverLocation } from "@/lib/observer-location";
+import { useLocationFocusRequest, useObserverLocation } from "@/lib/observer-location";
 import { FUTURE_SATELLITES } from "@/lib/future-satellites";
 import { LEGACY_SATELLITES } from "@/lib/legacy-satellites";
 import { SATELLITES } from "@/lib/satellites";
@@ -37,6 +37,7 @@ export function OrbitViewer() {
   const [groundEntry, setGroundEntry] = useState(0);
   const [groundTrackRequest, setGroundTrackRequest] = useState(0);
   const observer = useObserverLocation();
+  const locationFocusRequest = useLocationFocusRequest();
   const handleMobileReadingModeChange = useCallback((readingMode: boolean) => {
     setMobileReadingMode(readingMode);
   }, []);
@@ -294,6 +295,7 @@ export function OrbitViewer() {
           groundTrackRequest={groundTrackRequest}
           latitude={observer.lat}
           longitude={observer.lon}
+          locationFocusRequest={locationFocusRequest}
           onTelemetryUpdate={updateTelemetry}
         />
       </div>

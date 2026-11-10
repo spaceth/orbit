@@ -8,7 +8,7 @@ import { decodeLandMesh } from "@/lib/geo";
 import type { ThemeColors } from "@/lib/theme";
 
 const LAND_MESH_URL = "/data/land-mesh.bin";
-const GROUND_EARTH_COLOR = "#3a3a3c";
+const GROUND_EARTH_COLOR = "#191919";
 
 interface EarthProps {
   colors: ThemeColors;

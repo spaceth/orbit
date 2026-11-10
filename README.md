@@ -89,7 +89,7 @@ Satellite markers are designed to stay visible whether you zoom in or out. Their
 
 Ground view is the second camera, next to the language switch. Space view looks down at Earth. Ground view stands on the surface and looks up.
 
-The camera sits just above the ground at the chosen latitude and longitude, in a local frame of up, north, and east. It opens facing north, a little above the horizon. Dragging grabs the sky, so the stars stay under the pointer. The scroll wheel changes how wide the view is. From the ground, Earth is a plain dark gray sphere, which keeps the horizon simple while you look at the sky. The land mesh stays in Space view.
+The camera sits just above the ground at the chosen latitude and longitude, in a local frame of up, north, and east. It opens facing north, a little above the horizon. Dragging grabs the sky, so the stars stay under the pointer. The scroll wheel changes how wide the view is. From the ground, Earth is a plain `#191919` sphere, which keeps the horizon simple while you look at the sky. The land mesh stays in Space view. Choosing a listed place or **My location** in Space view turns the globe so that point is centered. Dragging the globe lets you look around again.
 
 Satellites use the same SGP4 positions as in Space view. Selecting one turns the camera toward it and keeps it centered as the simulation clock moves. Dragging the sky releases that tracking, and selecting the satellite again starts it again. The time controller still moves the sky, the Moon, the satellites, and the trails together.
 
@@ -99,10 +99,11 @@ The location box starts collapsed. Its places are grouped by type and stored in 
 
 | Group | Places |
 | --- | --- |
-| City | Bangkok |
+| City | Bangkok, Los Angeles (Griffith Observatory), London (Greenwich), Tokyo (National Astronomical Observatory of Japan), Hawaii (Keck Observatory), Canaveral (Vehicle Assembly Building) |
 | NARIT | Princess Sirindhorn AstroPark, Thai National Telescope, Thai National Radio Telescope, Nakhon Ratchasima, Songkhla, Khon Kaen, Chachoengsao |
 | GISTDA | Space Krenovation Park |
-| Dark Sky Area | Pailin Astro Park |
+| Dark Sky Area | Pailin Astro Park, Dara Cuisine Phuket |
+| Commercial | NB Space |
 
 **My location** uses the browser’s geolocation. Typed latitude and longitude are kept in this browser under `orbit-ground-location`.
 
@@ -143,6 +144,7 @@ Orbit starts with Thai satellites that have NORAD IDs and available OMM data, in
 
 ### Changelog
 
+- **2026-11-10** — Add ground places: Los Angeles at Griffith Observatory, London at Greenwich, Tokyo at the National Astronomical Observatory of Japan, Hawaii at Keck Observatory, and Canaveral at the Vehicle Assembly Building, plus Dara Cuisine Phuket under Dark Sky Area and a Commercial group with NB Space. Choosing a place or My location in Space view turns the globe so that point is centered. From the ground, Earth is `#191919`. See **Ground view**.
 - **2026-11-09** — The location control stays available in space view, and the chosen place is a white dot on the globe. Pass prediction uses SGP4 for the next 3 days from that place: date, rise time, max elevation, and duration. Choosing a pass jumps the simulation to the rise, counts T− until the satellite climbs above the horizon and T+ after, and shows the ascending and descending compass. A geostationary satellite that never sets says it is always above you. The list can be saved as CSV, and the original OMM record can be downloaded beside the prediction button.
 - **2026-11-08** — Add a Ground view next to the language switch. The camera stands at a listed place, the browser location, or typed coordinates, and keeps a selected satellite centered until the sky is dragged. Stars to magnitude 6 come from the XHIP Hipparcos compilation (Anderson & Francis, 2012), and the constellation lines are the IAU figures as drawn in Olaf Frohn's d3-celestial. From the ground, Earth is a plain dark gray sphere. Places are grouped as City, NARIT, GISTDA, and Dark Sky Area. See **Ground view**.
 - **2026-11-07** — Add My Satellites, stored only in this browser. Enter a NORAD ID or a TLE to track any catalog object with the same OMM feed, rename it, and click a NORAD ID to copy it.

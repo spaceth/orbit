@@ -7,6 +7,41 @@
     "lon": 100.50144
   },
   {
+    "id": "los-angeles",
+    "group": "city",
+    "name": { "en": "Los Angeles", "th": "ลอสแอนเจลิส" },
+    "lat": 34.11833,
+    "lon": -118.30033
+  },
+  {
+    "id": "london",
+    "group": "city",
+    "name": { "en": "London", "th": "ลอนดอน" },
+    "lat": 51.47781,
+    "lon": -0.00147
+  },
+  {
+    "id": "tokyo",
+    "group": "city",
+    "name": { "en": "Tokyo", "th": "โตเกียว" },
+    "lat": 35.67519,
+    "lon": 139.53783
+  },
+  {
+    "id": "hawaii",
+    "group": "city",
+    "name": { "en": "Hawaii", "th": "ฮาวาย" },
+    "lat": 19.82636,
+    "lon": -155.47501
+  },
+  {
+    "id": "canaveral",
+    "group": "city",
+    "name": { "en": "Canaveral", "th": "คานาเวอรัล" },
+    "lat": 28.58639,
+    "lon": -80.65139
+  },
+  {
     "id": "princess-sirindhorn-astropark",
     "group": "narit",
     "name": { "en": "Princess Sirindhorn AstroPark", "th": "อุทยานดาราศาสตร์สิรินธร" },
@@ -68,5 +103,19 @@
     "name": { "en": "Pailin Astro Park", "th": "ไพลิน แอสโตร พาร์ค" },
     "lat": 14.69833,
     "lon": 101.45465
+  },
+  {
+    "id": "dara-cuisine-phuket",
+    "group": "dark-sky",
+    "name": { "en": "Dara Cuisine Phuket", "th": "ดารา คูซีน ภูเก็ต" },
+    "lat": 8.035583,
+    "lon": 98.284319
+  },
+  {
+    "id": "nb-space",
+    "group": "commercial",
+    "name": { "en": "NB Space", "th": "NB Space" },
+    "lat": 13.8188,
+    "lon": 100.5142
   }
 ]

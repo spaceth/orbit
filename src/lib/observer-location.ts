@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 
 import cities from "@/data/cities.json";
 
-export type PlaceGroupId = "city" | "narit" | "gistda" | "dark-sky";
+export type PlaceGroupId = "city" | "narit" | "gistda" | "dark-sky" | "commercial";
 
 export interface City {
   id: string;
@@ -46,6 +46,7 @@ const DEFAULT_OBSERVER: ObserverLocation = {
 let current = DEFAULT_OBSERVER;
 let hydrated = false;
 let autoLocateAttempted = false;
+let locationFocusRequest = 0;
 const listeners = new Set<() => void>();
 
 function clamp(value: number, min: number, max: number): number {
@@ -140,6 +141,20 @@ export function setObserverLocation(next: ObserverLocation) {
   current = next;
   remember(next);
   emit();
+}
+
+/** A clicked place or “My location”. Space view turns to center this point. */
+export function selectObserverLocation(next: ObserverLocation) {
+  locationFocusRequest += 1;
+  setObserverLocation(next);
+}
+
+export function useLocationFocusRequest(): number {
+  return useSyncExternalStore(
+    subscribeObserver,
+    () => locationFocusRequest,
+    () => 0,
+  );
 }
 
 export function shouldAutoLocate(): boolean {
