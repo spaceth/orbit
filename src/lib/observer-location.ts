@@ -14,7 +14,7 @@ export interface City {
 
 export const CITIES = cities as readonly City[];
 
-export function placeGroups(): { id: PlaceGroupId; places: City[] }[] {
+function buildPlaceGroups(): { id: PlaceGroupId; places: City[] }[] {
   const groups: { id: PlaceGroupId; places: City[] }[] = [];
   for (const place of CITIES) {
     const existing = groups.find((group) => group.id === place.group);
@@ -25,6 +25,12 @@ export function placeGroups(): { id: PlaceGroupId; places: City[] }[] {
     }
   }
   return groups;
+}
+
+const PLACE_GROUPS = buildPlaceGroups();
+
+export function placeGroups(): { id: PlaceGroupId; places: City[] }[] {
+  return PLACE_GROUPS;
 }
 
 export interface ObserverLocation {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { PerspectiveCamera, Quaternion, Vector3 } from "three";
 
 import { useSimulationTime } from "@/components/simulation-time-provider";
@@ -70,6 +70,10 @@ export function GroundCamera({
   const look = useRef(new Vector3());
   const lookTarget = useRef(new Vector3());
   const endQuaternion = useRef(new Quaternion());
+  const satellitesById = useMemo(
+    () => new Map(satellites.map((satellite) => [satellite.noradId, satellite])),
+    [satellites],
+  );
 
   useEffect(() => {
     if (!active) {
@@ -194,7 +198,7 @@ export function GroundCamera({
     }
 
     if (tracking.current && activeNoradId !== null) {
-      const satellite = satellites.find((item) => item.noradId === activeNoradId);
+      const satellite = satellitesById.get(activeNoradId);
       const position = satellite
         ? getEcfPosition(satellite.satrec, new Date(readSimulationMs(clockRef.current)))
         : null;

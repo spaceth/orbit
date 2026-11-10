@@ -2,9 +2,9 @@
 
 import { OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { PerspectiveCamera, Quaternion, Vector3 } from "three";
+import { PerspectiveCamera, Quaternion, Vector3, type Camera } from "three";
 
 import { useSimulationTime } from "@/components/simulation-time-provider";
 import { getEcfPosition, type SatRec } from "@/lib/orbit";
@@ -22,9 +22,25 @@ interface CameraControllerProps {
   satellites: { noradId: number; satrec: SatRec }[];
 }
 
+interface LocationSlew {
+  active: boolean;
+  pending: boolean;
+  seen: number;
+  startTarget: Vector3;
+  startRadius: number;
+  endDir: Vector3;
+  from: Quaternion;
+  to: Quaternion;
+  now: Quaternion;
+  distance: number;
+  duration: number;
+  t: number;
+}
+
 const EARTH_CENTER = new Vector3(0, 0, 0);
 const WORLD_UP = new Vector3(0, 1, 0);
 const UNIT_Z = new Vector3(0, 0, 1);
+const START_DIRECTION = new Vector3();
 const DEFAULT_CAMERA_DISTANCE = 2.8;
 const MIN_LOCATION_DISTANCE = 1.6;
 const MAX_LOCATION_DISTANCE = 12;
@@ -57,6 +73,81 @@ function setOrbitProjection(camera: PerspectiveCamera, near: number) {
   camera.updateProjectionMatrix();
 }
 
+function createLocationSlew(): LocationSlew {
+  return {
+    active: false,
+    pending: false,
+    seen: 0,
+    startTarget: new Vector3(),
+    startRadius: DEFAULT_CAMERA_DISTANCE,
+    endDir: new Vector3(),
+    from: new Quaternion(),
+    to: new Quaternion(),
+    now: new Quaternion(),
+    distance: DEFAULT_CAMERA_DISTANCE,
+    duration: 0.7,
+    t: 1,
+  };
+}
+
+function releaseLocationSlew(slew: LocationSlew) {
+  slew.active = false;
+  slew.pending = false;
+}
+
+function armLocationSlew(
+  slew: LocationSlew,
+  camera: Camera,
+  target: Vector3,
+  latitude: number,
+  longitude: number,
+  request: number,
+  frame: ObserverFrame,
+) {
+  const startDirection = START_DIRECTION.copy(camera.position);
+  if (startDirection.lengthSq() < 1e-8) {
+    startDirection.set(0, 0, 1);
+  } else {
+    startDirection.normalize();
+  }
+  const basis = observerFrame(latitude, longitude, frame);
+  slew.endDir.copy(basis.up).normalize();
+  const viewingGlobe = target.lengthSq() < 0.25;
+  const radius = camera.position.length();
+  slew.distance = viewingGlobe
+    ? Math.min(MAX_LOCATION_DISTANCE, Math.max(MIN_LOCATION_DISTANCE, radius || DEFAULT_CAMERA_DISTANCE))
+    : DEFAULT_CAMERA_DISTANCE;
+  slew.startTarget.copy(target);
+  slew.startRadius = radius || DEFAULT_CAMERA_DISTANCE;
+  slew.from.setFromUnitVectors(UNIT_Z, startDirection);
+  slew.to.setFromUnitVectors(UNIT_Z, slew.endDir);
+  const angle = Math.acos(Math.min(1, Math.max(-1, startDirection.dot(slew.endDir))));
+  slew.duration = Math.min(0.95, Math.max(0.45, (angle / Math.PI) * 1.05));
+  slew.t = 0;
+  slew.active = true;
+  slew.pending = false;
+  slew.seen = request;
+}
+
+function stepLocationSlew(slew: LocationSlew, camera: Camera, target: Vector3, desired: Vector3, delta: number) {
+  slew.t = Math.min(1, slew.t + delta / slew.duration);
+  const blend = smoothstep(slew.t);
+  slew.now.copy(slew.from).slerp(slew.to, blend);
+  desired
+    .copy(UNIT_Z)
+    .applyQuaternion(slew.now)
+    .multiplyScalar(slew.startRadius + (slew.distance - slew.startRadius) * blend);
+  target.lerpVectors(slew.startTarget, EARTH_CENTER, blend);
+  camera.position.copy(desired);
+  if (Math.abs(desired.y) > desired.length() * 0.92) {
+    camera.up.set(0, 0, desired.y > 0 ? -1 : 1);
+  }
+  if (slew.t >= 1) {
+    target.copy(EARTH_CENTER);
+    camera.position.copy(slew.endDir).multiplyScalar(slew.distance);
+  }
+}
+
 export function CameraController({
   activeNoradId,
   earthFocused,
@@ -78,33 +169,18 @@ export function CameraController({
   const prevActiveId = useRef<number | null | undefined>(undefined);
   const prevGroundView = useRef(groundView);
   const tightNear = useRef(false);
-  const locationFocus = useRef(false);
-  const pendingLocation = useRef(false);
-  const seenLocationRequest = useRef(0);
-  const locationFocusRequestRef = useRef(locationFocusRequest);
-  const latitudeRef = useRef(latitude);
-  const longitudeRef = useRef(longitude);
-  const startTarget = useRef(new Vector3());
-  const startCamera = useRef(new Vector3());
-  const startDir = useRef(new Vector3());
-  const endDir = useRef(new Vector3());
-  const fromQuat = useRef(new Quaternion());
-  const toQuat = useRef(new Quaternion());
-  const nowQuat = useRef(new Quaternion());
-  const focusDistance = useRef(DEFAULT_CAMERA_DISTANCE);
-  const focusDuration = useRef(0.7);
-  const focusT = useRef(1);
+  const slew = useRef(createLocationSlew());
   const locationFrame = useRef<ObserverFrame>({
     position: new Vector3(),
     up: new Vector3(),
     north: new Vector3(),
     east: new Vector3(),
   });
+  const satellitesById = useMemo(
+    () => new Map(satellites.map((satellite) => [satellite.noradId, satellite])),
+    [satellites],
+  );
   const { clockRef } = useSimulationTime();
-
-  latitudeRef.current = latitude;
-  longitudeRef.current = longitude;
-  locationFocusRequestRef.current = locationFocusRequest;
 
   useEffect(() => {
     if (prevActiveId.current === undefined) {
@@ -114,8 +190,7 @@ export function CameraController({
 
     if (activeNoradId !== prevActiveId.current) {
       prevActiveId.current = activeNoradId;
-      locationFocus.current = false;
-      pendingLocation.current = false;
+      releaseLocationSlew(slew.current);
       isFocusing.current = true;
       focusSpeed.current = 12;
     }
@@ -125,21 +200,21 @@ export function CameraController({
     if (earthFocusRequest === 0) {
       return;
     }
-    locationFocus.current = false;
-    pendingLocation.current = false;
+    releaseLocationSlew(slew.current);
     isFocusing.current = true;
     focusSpeed.current = 12;
   }, [earthFocusRequest]);
 
   useEffect(() => {
-    if (locationFocusRequest === 0 || locationFocusRequest === seenLocationRequest.current) {
+    const locationSlew = slew.current;
+    if (locationFocusRequest === 0 || locationFocusRequest === locationSlew.seen) {
       return;
     }
     if (groundView) {
-      seenLocationRequest.current = locationFocusRequest;
+      locationSlew.seen = locationFocusRequest;
       return;
     }
-    pendingLocation.current = true;
+    locationSlew.pending = true;
   }, [groundView, locationFocusRequest]);
 
   useFrame((_, delta) => {
@@ -148,18 +223,17 @@ export function CameraController({
       return;
     }
 
+    const locationSlew = slew.current;
     if (prevGroundView.current !== groundView) {
       const leavingGround = prevGroundView.current && !groundView;
       const enteringGround = groundView && !prevGroundView.current;
       prevGroundView.current = groundView;
       if (enteringGround) {
-        locationFocus.current = false;
-        pendingLocation.current = false;
+        releaseLocationSlew(locationSlew);
         isFocusing.current = false;
       }
       if (leavingGround) {
-        locationFocus.current = false;
-        pendingLocation.current = false;
+        releaseLocationSlew(locationSlew);
         isFocusing.current = true;
         focusSpeed.current = 3.2;
         tightNear.current = true;
@@ -181,58 +255,26 @@ export function CameraController({
       setOrbitProjection(camera, tightNear.current ? RETURN_NEAR : ORBIT_NEAR);
     }
 
-    if (pendingLocation.current) {
-      const startDirection = startDir.current.copy(camera.position);
-      if (startDirection.lengthSq() < 1e-8) {
-        startDirection.set(0, 0, 1);
-      } else {
-        startDirection.normalize();
-      }
-      const frame = observerFrame(
-        latitudeRef.current,
-        longitudeRef.current,
+    if (locationSlew.pending) {
+      armLocationSlew(
+        locationSlew,
+        camera,
+        controls.target,
+        latitude,
+        longitude,
+        locationFocusRequest,
         locationFrame.current,
       );
-      endDir.current.copy(frame.up).normalize();
-      const viewingGlobe = controls.target.lengthSq() < 0.25;
-      const radius = camera.position.length();
-      focusDistance.current = viewingGlobe
-        ? Math.min(MAX_LOCATION_DISTANCE, Math.max(MIN_LOCATION_DISTANCE, radius || DEFAULT_CAMERA_DISTANCE))
-        : DEFAULT_CAMERA_DISTANCE;
-      startTarget.current.copy(controls.target);
-      startCamera.current.copy(camera.position);
-      fromQuat.current.setFromUnitVectors(UNIT_Z, startDirection);
-      toQuat.current.setFromUnitVectors(UNIT_Z, endDir.current);
-      const angle = Math.acos(Math.min(1, Math.max(-1, startDirection.dot(endDir.current))));
-      focusDuration.current = Math.min(0.95, Math.max(0.45, (angle / Math.PI) * 1.05));
-      focusT.current = 0;
-      locationFocus.current = true;
       isFocusing.current = true;
-      pendingLocation.current = false;
-      seenLocationRequest.current = locationFocusRequestRef.current;
     }
 
-    if (locationFocus.current) {
+    if (locationSlew.active) {
       if (isFocusing.current) {
-        focusT.current = Math.min(1, focusT.current + delta / focusDuration.current);
-        const blend = smoothstep(focusT.current);
-        nowQuat.current.copy(fromQuat.current).slerp(toQuat.current, blend);
-        const startRadius = startCamera.current.length() || DEFAULT_CAMERA_DISTANCE;
-        desiredCamera.current
-          .copy(UNIT_Z)
-          .applyQuaternion(nowQuat.current)
-          .multiplyScalar(startRadius + (focusDistance.current - startRadius) * blend);
-        controls.target.lerpVectors(startTarget.current, EARTH_CENTER, blend);
-        camera.position.copy(desiredCamera.current);
-        if (Math.abs(desiredCamera.current.y) > desiredCamera.current.length() * 0.92) {
-          camera.up.set(0, 0, desiredCamera.current.y > 0 ? -1 : 1);
-        }
-        if (focusT.current >= 1) {
+        stepLocationSlew(locationSlew, camera, controls.target, desiredCamera.current, delta);
+        if (locationSlew.t >= 1) {
           isFocusing.current = false;
-          controls.target.copy(EARTH_CENTER);
-          camera.position.copy(endDir.current).multiplyScalar(focusDistance.current);
           if (activeNoradId === null || earthFocused) {
-            locationFocus.current = false;
+            locationSlew.active = false;
           }
         }
       }
@@ -271,7 +313,7 @@ export function CameraController({
       return;
     }
 
-    const satellite = satellites.find((entry) => entry.noradId === activeNoradId);
+    const satellite = satellitesById.get(activeNoradId);
     if (!satellite) {
       controls.update();
       return;
@@ -291,11 +333,11 @@ export function CameraController({
       controls.target.lerp(position, t);
 
       const radius = position.length();
-      const focusDistance = getFocusDistance(radius);
+      const standOff = getFocusDistance(radius);
       desiredCamera.current
         .copy(position)
         .normalize()
-        .multiplyScalar(radius + focusDistance);
+        .multiplyScalar(radius + standOff);
       camera.position.lerp(desiredCamera.current, t);
 
       const focusDone =
@@ -327,11 +369,10 @@ export function CameraController({
       dampingFactor={0.05}
       rotateSpeed={0.5}
       onStart={() => {
-        if (!locationFocus.current) {
+        if (!slew.current.active) {
           return;
         }
-        locationFocus.current = false;
-        pendingLocation.current = false;
+        releaseLocationSlew(slew.current);
         isFocusing.current = false;
       }}
     />

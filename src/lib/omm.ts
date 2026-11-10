@@ -9,7 +9,7 @@ const EARTH_MU_KM3_S2 = 398600.4418;
 const SECONDS_PER_DAY = 86_400;
 
 /** CelesTrak GP JSON / CCSDS OMM field names (uppercase). */
-export type CelestrakOmmJson = OMMJsonObject;
+type CelestrakOmmJson = OMMJsonObject;
 
 function toNumber(value: string | number): number {
   const parsed = typeof value === "number" ? value : Number.parseFloat(value);
@@ -19,7 +19,7 @@ function toNumber(value: string | number): number {
   return parsed;
 }
 
-export function normalizeOmm(raw: CelestrakOmmJson): OmmData {
+function normalizeOmm(raw: CelestrakOmmJson): OmmData {
   const noradId = toNumber(raw.NORAD_CAT_ID);
   const objectId =
     typeof raw.OBJECT_ID === "string" && raw.OBJECT_ID.length > 0

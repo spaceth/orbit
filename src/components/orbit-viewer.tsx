@@ -110,11 +110,7 @@ export function OrbitViewer() {
     [viewMode],
   );
 
-  const clearEarthFocus = useCallback(() => {
-    setEarthFocused(false);
-  }, []);
-
-  const focusSatellite = useCallback(() => {
+  const releaseEarthFocus = useCallback(() => {
     setEarthFocused(false);
   }, []);
 
@@ -148,13 +144,13 @@ export function OrbitViewer() {
     selectNoradId: selectCatalogNoradId,
     selectLegacyId: selectCatalogLegacyId,
     selectFutureId: selectCatalogFutureId,
-    onFocusSatellite: focusSatellite,
+    onFocusSatellite: releaseEarthFocus,
   });
 
   const handleSelectNoradId = useCallback(
     (noradId: number) => {
       setGroundTrackRequest((request) => request + 1);
-      focusSatellite();
+      releaseEarthFocus();
       const mineOnly =
         mySatellites.some((satellite) => satellite.noradId === noradId) &&
         !availableNoradIds.includes(noradId);
@@ -170,7 +166,7 @@ export function OrbitViewer() {
       availableNoradIds,
       deselect,
       deselectMy,
-      focusSatellite,
+      releaseEarthFocus,
       mySatellites,
       selectMyNoradId,
       selectNoradId,
@@ -180,27 +176,27 @@ export function OrbitViewer() {
   const handleSelectMyNoradId = useCallback(
     (noradId: number) => {
       setGroundTrackRequest((request) => request + 1);
-      focusSatellite();
+      releaseEarthFocus();
       deselect();
       selectMyNoradId(noradId);
     },
-    [deselect, focusSatellite, selectMyNoradId],
+    [deselect, releaseEarthFocus, selectMyNoradId],
   );
 
   const handleSelectLegacyId = useCallback(
     (id: string) => {
-      focusSatellite();
+      releaseEarthFocus();
       selectCatalogLegacyId(id);
     },
-    [focusSatellite, selectCatalogLegacyId],
+    [releaseEarthFocus, selectCatalogLegacyId],
   );
 
   const handleSelectFutureId = useCallback(
     (id: string) => {
-      focusSatellite();
+      releaseEarthFocus();
       selectCatalogFutureId(id);
     },
-    [focusSatellite, selectCatalogFutureId],
+    [releaseEarthFocus, selectCatalogFutureId],
   );
 
   const handleToggleVisibility = useCallback(
@@ -221,10 +217,10 @@ export function OrbitViewer() {
   }, [deselect, deselectMy, focusEarth]);
 
   const handleDeselect = useCallback(() => {
-    clearEarthFocus();
+    releaseEarthFocus();
     deselect();
     deselectMy();
-  }, [clearEarthFocus, deselect, deselectMy]);
+  }, [releaseEarthFocus, deselect, deselectMy]);
 
   return (
     <SimulationTimeProvider>

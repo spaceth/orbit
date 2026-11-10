@@ -2,7 +2,6 @@ import type { SatellitePurpose } from "@/types/satellite";
 
 export type Locale = "en" | "th";
 
-export const LOCALES: readonly Locale[] = ["en", "th"];
 export const DEFAULT_LOCALE: Locale = "en";
 export const LOCALE_STORAGE_KEY = "orbit-locale";
 
