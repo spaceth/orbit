@@ -1,101 +1,123 @@
 # Orbit
 
-Orbit is a minimal 3D satellite tracker for Thailand spacecraft, built by Spaceth. It lets you see where Thai satellites are above Earth in a visual, interactive, and easy-to-understand way, without needing to open any specialized tracking software.
+Orbit is a 3D satellite tracker for Thailand’s spacecraft, built by Spaceth. It shows where those satellites are above Earth, in the browser, without a separate tracking program.
 
-The site does not “guess” where a satellite is. Instead, it uses real orbital data called **OMM**, then calculates where each satellite should be at the current moment.
+The site starts from a real orbit snapshot called an **OMM**, then calculates where each satellite should be at the time on the clock.
 
 ## Why OMM instead of TLE?
 
-Orbit previously used **TLE** (Two-Line Element) data. That format is hitting a hard limit: NORAD catalog numbers only fit in five digits, and CelesTrak has announced that those numbers have run out.
+A **TLE** (Two-Line Element set) is that same snapshot written as two fixed lines of numbers, like an old paper form where every box has a set width. The public catalog number, the **NORAD ID**, only had room for five digits on that form.
 
-As of **2026-07-11**, with the addition of the satellite Saramago, newly cataloged objects receive **6-digit** catalog numbers (100000+). GP data for those objects is **not** available in the legacy TLE format. CelesTrak’s notice and guidance are here: [A New Way to Obtain GP Data](https://celestrak.org/NORAD/documentation/gp-data-formats.php).
+CelesTrak has said those five-digit numbers ran out. From **2026-07-11**, when the satellite Saramago was added, newly cataloged objects get **6-digit** numbers (100000 and up). Their orbit data is no longer published as a TLE. The notice is [A New Way to Obtain GP Data](https://celestrak.org/NORAD/documentation/gp-data-formats.php).
 
-Orbit therefore migrated to **OMM** (Orbit Mean-Elements Message) — a structured, future-proof GP format that still feeds the same **SGP4** model, so tracking can keep working as the catalog grows beyond five digits.
+An **OMM** (Orbit Mean-Elements Message) is the same snapshot with a label on every number, usually as JSON. The catalog number can grow, and the calculator stays the same: **SGP4**. CelesTrak calls this family of data **GP** (general perturbations). OMM is the labeled way to write a GP snapshot.
 
-## What is OMM?
+## What is an OMM?
 
-**OMM** stands for **Orbit Mean-Elements Message**. It is a CCSDS standard for exchanging the same kind of mean orbital elements that were traditionally distributed as Two-Line Element sets (TLE), in a structured, machine-readable JSON (or XML/KVN) format.
+Think of an OMM as a photograph of a satellite’s orbit, taken at one moment. The photograph is not a list of future positions. It is the shape of the path, plus where the satellite was along that path when the photo was taken.
 
-An OMM contains important orbital information such as the satellite’s inclination, mean motion, eccentricity, and the epoch that data refers to — plus drag terms used by SGP4.
+From that photo, a calculator can run the orbit forward or backward: a few minutes from now, tomorrow, or earlier today. Orbit downloads the latest photo and does that calculation in the browser. The **Download OMM** button on a satellite saves the record the site is using.
 
-In simple terms, an OMM is a “latest snapshot” of a satellite’s orbit. From that snapshot, we can use a mathematical model to calculate where the satellite should be a few minutes later, a few hours later, or even at a previous point in time.
+### What a record looks like
 
-Orbit does not store satellite positions as pre-made points. It downloads the latest OMM, then calculates the satellite’s real-time position in the browser.
+CelesTrak sends one JSON object per satellite. This is a real THEOS-2 record from 7 September 2026, shortened to the fields Orbit reads. Live numbers change. The labels do not.
 
-## How does the site know where a satellite is?
+```json
+{
+  "OBJECT_NAME": "THEOS-2 (T2V)",
+  "OBJECT_ID": "2023-155A",
+  "EPOCH": "2026-09-07T21:46:27.062688",
+  "MEAN_MOTION": 14.81706045,
+  "ECCENTRICITY": 0.00015312,
+  "INCLINATION": 97.881,
+  "RA_OF_ASC_NODE": 320.6123,
+  "ARG_OF_PERICENTER": 90.3925,
+  "MEAN_ANOMALY": 269.7463,
+  "BSTAR": 0.000067931,
+  "MEAN_MOTION_DOT": 0.00000483,
+  "MEAN_MOTION_DDOT": 0,
+  "NORAD_CAT_ID": 58016,
+  "REV_AT_EPOCH": 15767,
+  "CLASSIFICATION_TYPE": "U",
+  "ELEMENT_SET_NO": 999,
+  "EPHEMERIS_TYPE": 0
+}
+```
 
-After Orbit gets an OMM, it uses an orbital model called **SGP4** to calculate the satellite’s position.
+The bundled copy in `src/data/omm-fallback.json` is the same record with shorter names (`meanMotion`, `inclination`, and so on).
 
-SGP4 is a long-standing standard Simplified Perturbations model used with mean-element data (historically TLE, now also OMM). Think of it as a classic orbital calculator that is still widely used in satellite tracking today.
+### How to read it
 
-This project uses **satellite.js**, a JavaScript library that can read OMM JSON and calculate satellite positions using SGP4.
+**OBJECT_NAME** and **NORAD_CAT_ID** are the name and the catalog number. `58016` is THEOS-2’s card number in the public catalog. **OBJECT_ID** `2023-155A` is the international designator: launched in 2023, the 155th launch of that year, piece A of that launch.
 
-The process looks roughly like this:
+**EPOCH** is the time on the photograph. Every other number describes the orbit at that instant. SGP4 then carries the photograph to “now,” or to whatever time the timeline is showing.
 
-1. The site downloads OMM data for each satellite.
-2. satellite.js reads the OMM and turns it into an orbital model.
-3. SGP4 calculates the satellite’s position at the current time.
-4. The system converts that position into latitude, longitude, altitude, and a 3D position on the globe.
-5. The site renders that position as a dot and orbit trail on the 3D Earth.
+**MEAN_MOTION** `14.817` is how many laps the satellite makes in one day. Divide 24 hours by that number and the lap is about 97 minutes. A satellite close to Earth laps quickly. One that seems to hang over one spot on Earth laps about once a day.
 
-So, OMM is the starting data, SGP4 is the calculation method, and satellite.js is the tool that makes them usable on the web.
+**ECCENTRICITY** `0.00015` says how stretched the oval is. Zero is a perfect circle. This orbit is almost round, like a coin that is only slightly out of round. The closest and farthest points are nearly the same height.
 
-## Where does the OMM data come from?
+**INCLINATION** `97.881` degrees is the tilt of that oval against the equator. Zero would fly along the equator and never see the poles. Ninety would pass over the poles. A little past ninety, like this, is the usual tilt for an Earth-watching satellite: each lap crosses almost every latitude, and the tilt is chosen so the sunlight on the ground looks similar from one pass to the next.
 
-Orbit gets OMM (GP) data from:
+**RA_OF_ASC_NODE** `320.6123` degrees says which way the tilted oval is turned. Picture a hoop stood almost upright around the Earth. This number spins the hoop until the place where the satellite crosses the equator going north lines up with that direction.
 
-**[CelesTrak](https://celestrak.org/)** (`gp.php` JSON by NORAD catalog number)
+**ARG_OF_PERICENTER** `90.3925` degrees says where, along the oval, the closest point to Earth sits. **MEAN_ANOMALY** `269.7463` degrees says how far around the lap the satellite was when the photo was taken. Zero means “at the closest point.” 180 means “at the farthest.” 270 means about three quarters of the way around, which is where THEOS-2 was in this snapshot.
 
-However, the site does not let users fetch OMM data for any object they want. Orbit uses an internal API only for Thai satellites included in the project’s satellite list.
+**BSTAR** stands in for air drag. A few hundred kilometers up there is still a thin trace of air, and it slowly tugs on the satellite. **MEAN_MOTION_DOT** says how the lap rate is changing because of that tug. **MEAN_MOTION_DDOT** is a finer correction and is usually zero.
 
-On the server side, there is a route that fetches OMM data by NORAD ID, such as THEOS-2, KnackSat-2, THEOS, or Thaicom. Before fetching anything, the system checks whether that NORAD ID is in the allowed list.
+**REV_AT_EPOCH** `15767` is the lap count on the photograph: THEOS-2 had gone around Earth that many times.
 
-This is done so the API does not become an open proxy that anyone can use to fetch random data. It also helps keep the satellite list easy to control.
+**CLASSIFICATION_TYPE** `U` means unclassified. **EPHEMERIS_TYPE** `0` means “use the usual SGP4 calculator.” **ELEMENT_SET_NO** is which update of the file this is.
 
-OMM data is cached for about 1 hour. Satellite orbits do not change every second like stock prices, so caching helps the site load faster and avoids unnecessary API calls.
+## How the site gets a position from that photo
 
-## Fallback OMM
+**SGP4** is the film projector. Give it the photograph and a time, and it estimates where the satellite should be. The air, the Sun, and the Moon keep nudging the real satellite, so a snapshot from today is sharp and a snapshot from months ago has drifted. That is why Orbit prefers a fresh OMM and keeps a spare copy for when the network fails.
 
-If the live CelesTrak fetch is unavailable, Orbit falls back to a bundled copy of OMM data stored in the project at `src/data/omm-fallback.json`.
+**satellite.js** is the JavaScript library that reads the JSON and runs SGP4.
 
-The fallback works at two levels:
+1. The site downloads an OMM for each satellite.
+2. satellite.js turns that record into an orbit model.
+3. SGP4 estimates the position at the time on the clock.
+4. Orbit turns that position into latitude, longitude, height, speed, and a point in the 3D scene.
+5. The point is drawn on the Earth, with a line for the path.
 
-1. **Server** — the `/api/omm/[id]` route tries CelesTrak first. If that fails, it returns the bundled OMM for that satellite.
-2. **Browser** — if a request to the API route still fails, the client uses the same bundled data so tracking can continue offline or during outages.
+OMM is the photograph. SGP4 is the projector. satellite.js is the projector’s engine in the browser.
 
-The globe and satellite list keep working with fallback data. An error with a **Try again** button appears only when both the live API and the bundled fallback are unavailable.
+## Where the OMM comes from
 
-To refresh the fallback file from CelesTrak (recommended about once a week):
+Orbit loads GP data from **[CelesTrak](https://celestrak.org/)** (`gp.php`, JSON, looked up by NORAD ID).
+
+The server route is `/api/omm/[id]`. It only fetches IDs that are in the project’s satellite list, so the route stays limited to those spacecraft. A fresh record is kept for about an hour. An orbit snapshot is still useful an hour later, and the cache keeps the page from asking CelesTrak on every visit.
+
+If CelesTrak is unreachable, Orbit uses the copy in `src/data/omm-fallback.json`.
+
+1. The server tries CelesTrak first, then returns the bundled record for that satellite.
+2. If the browser cannot reach the server route, it uses the same bundled record, so the globe can keep moving offline.
+
+An error with **Try again** appears when both the live record and the bundled copy are missing. To refresh the bundled file from CelesTrak, about once a week:
 
 ```bash
 npm run update-omm-fallback
 ```
 
-This re-fetches OMMs for every satellite in the project’s registry and updates `src/data/omm-fallback.json`.
+## The 3D Earth
 
-## What powers the 3D view?
+The globe is drawn with **Three.js**, through **React Three Fiber**. Three.js is the tool that puts 3D shapes on a web page. React Three Fiber lets those shapes live inside the React interface, the same way the panels and buttons do.
 
-The 3D Earth and satellite visualization are built with **Three.js**, through **React Three Fiber**.
-
-Three.js is a library for creating 3D graphics on the web. React Three Fiber makes it easier to use Three.js inside a React project.
-
-In Orbit, these tools are used to render the 3D Earth, satellite dots, orbit trails, and camera movement.
-
-The Earth in the scene is not just a plain sphere. It uses land data from Natural Earth, drawn as a vector mesh of land and ocean with no country borders. Coastlines stay smooth as you zoom in, and small islands are omitted so the globe loads quickly.
-
-Satellite markers are designed to stay visible whether you zoom in or out. Their size is recalculated so they remain consistent on screen, instead of becoming too tiny when zoomed out or too large when zoomed in.
+The land comes from Natural Earth: coastlines as a shape, ocean as the sphere under them, with no country borders. Small islands are left out so the globe loads quickly. A selected satellite brings the camera in. Leaving it returns the camera to the whole Earth.
 
 ## Ground view
 
-Ground view is the second camera, next to the language switch. Space view looks down at Earth. Ground view stands on the surface and looks up.
+Space view looks down at Earth. Ground view is the other camera, next to the language switch: you stand on the surface and look up.
 
-The camera sits just above the ground at the chosen latitude and longitude, in a local frame of up, north, and east. It opens facing north, a little above the horizon. Dragging grabs the sky, so the stars stay under the pointer. The scroll wheel changes how wide the view is. From the ground, Earth is a plain `#191919` sphere, which keeps the horizon simple while you look at the sky. The land mesh stays in Space view. Choosing a listed place or **My location** in Space view turns the globe so that point is centered. Dragging the globe lets you look around again.
+Picture standing outside with a camera. Overhead is up, compass north is north, and your right hand points east. The view opens facing north, a little above the horizon. Dragging grabs the sky, so the stars stay under the pointer. The scroll wheel widens or narrows the view. Under the horizon, the ground is a plain sphere. The land shape stays in Space view.
 
-Satellites use the same SGP4 positions as in Space view. Selecting one turns the camera toward it and keeps it centered as the simulation clock moves. Dragging the sky releases that tracking, and selecting the satellite again starts it again. The time controller still moves the sky, the Moon, the satellites, and the trails together.
+Choosing a listed place, or **My location**, in Space view turns the globe so that point is in the center. Dragging the globe lets you look around again.
+
+A selected satellite uses the same SGP4 position as in Space view. The camera turns toward it and keeps it centered as the clock moves. Dragging the sky lets go. Selecting the satellite again takes hold again. The time control moves the sky, the Moon, the satellites, and the trails together, like scrubbing one video.
 
 ### Where you stand
 
-The location box starts collapsed. Its places are grouped by type and stored in `src/data/cities.json`:
+The location box starts closed. Places are grouped in `src/data/cities.json`:
 
 | Group | Places |
 | --- | --- |
@@ -105,31 +127,29 @@ The location box starts collapsed. Its places are grouped by type and stored in 
 | Dark Sky Area | Pailin Astro Park, Dara Cuisine Phuket |
 | Commercial | NB Space |
 
-**My location** uses the browser’s geolocation. Typed latitude and longitude are kept in this browser under `orbit-ground-location`.
+**My location** asks the browser where you are. Latitude and longitude you type stay in this browser.
 
 ### Where the sky comes from
 
-Stars to magnitude 6 come from **XHIP**, the Extended Hipparcos Compilation (Anderson & Francis, 2012), as published in Olaf Frohn’s [d3-celestial](https://github.com/ofrohn/d3-celestial) (`stars.6.json`). Constellation lines are the IAU figures, with Frohn’s line adjustments, from the same project (`constellations.lines.json`, BSD-3-Clause). Orbit keeps a compact copy in `src/data/skymap.json` as J2000 right ascension and declination.
+The stars are the ones a person can see on a clear dark night, down to magnitude 6. Magnitude is the old brightness scale: smaller numbers are brighter, and 6 is about the faintest the eye can pick out without a telescope. The catalog is **XHIP**, the Extended Hipparcos Compilation (Anderson & Francis, 2012), as published in Olaf Frohn’s [d3-celestial](https://github.com/ofrohn/d3-celestial). Constellation lines are the IAU figures, with Frohn’s line adjustments, from the same project. Orbit keeps a compact copy in `src/data/skymap.json`.
 
-Each frame, satellite.js supplies Greenwich sidereal time and rotates that catalog into the same Earth-fixed frame the satellites already use, so the sky turns with the simulation clock.
+Each star is stored as right ascension and declination, which are longitude and latitude on the sky, drawn for the year 2000. Each frame, satellite.js supplies Greenwich sidereal time — star time, which runs a little faster than a wall clock because of how the Earth orbits the Sun — and turns that map into the same Earth-fixed frame the satellites already use. The sky and the satellites then share one clock.
 
-The Moon uses a low-precision Meeus-style geocentric position in `src/lib/moon.ts`. That position is already in the Earth-fixed frame, so the Moon appears in both views.
+The Moon is a simpler geocentric position in `src/lib/moon.ts`, already in that Earth-fixed frame, so it shows in both views.
 
-## What can Orbit do?
+## What you can do
 
-Orbit can show multiple Thai satellites at the same time on a 3D Earth. Users can select a satellite to see more details, including its position, altitude, velocity, mission information, launch date, and operator.
+Several Thai satellites can be on the globe at once. Select one for its position, height, speed, mission, launch date, and operator. Hide the ones you want out of the way.
 
-Users can also hide or show each satellite individually. This is useful when you only want to focus on certain spacecraft, or when the screen starts looking like someone dropped noodles all over the globe.
+The timeline scrubs about three days behind and ahead of now, and can play faster than real time. Pass prediction lists the next three days from the place you picked: date, rise time, highest elevation, and how long the satellite stays up. Choosing a pass jumps the clock to the rise. The count reads T− before the satellite climbs above the horizon and T+ after, with the compass direction as it rises and as it sets. A satellite that never sets says it is always above you. The list can be saved as CSV.
 
-When a satellite is selected, the camera smoothly moves to focus on it. When it is deselected, the camera returns to the normal Earth view.
+**My Satellites**, stored only in this browser, tracks any catalog object from a NORAD ID or a TLE, with the same OMM feed. You can rename it, and click a NORAD ID to copy it.
 
-You can deep-link to a satellite with a path such as `/theos-2`. Orbit focuses that satellite, then keeps the address bar on `/` so switching satellites in the session does not remount the globe.
-
-Orbit is dark only. The interface and the 3D scene share the same theme, so the UI and globe stay visually consistent.
+A path such as `/theos-2` opens that satellite. The address then stays on `/`, so picking another satellite does not reload the globe.
 
 ## Satellites currently tracked
 
-Orbit starts with Thai satellites that have NORAD IDs and available OMM data, including:
+Orbit starts with Thai satellites that have a NORAD ID and an OMM:
 
 | Satellite         | NORAD ID | Type              |
 | ----------------- | -------: | ----------------- |
@@ -144,18 +164,18 @@ Orbit starts with Thai satellites that have NORAD IDs and available OMM data, in
 
 ### Changelog
 
-- **2026-11-10** — Add ground places: Los Angeles at Griffith Observatory, London at Greenwich, Tokyo at the National Astronomical Observatory of Japan, Hawaii at Keck Observatory, and Canaveral at the Vehicle Assembly Building, plus Dara Cuisine Phuket under Dark Sky Area and a Commercial group with NB Space. Choosing a place or My location in Space view turns the globe so that point is centered. From the ground, Earth is `#191919`. See **Ground view**.
-- **2026-11-09** — The location control stays available in space view, and the chosen place is a white dot on the globe. Pass prediction uses SGP4 for the next 3 days from that place: date, rise time, max elevation, and duration. Choosing a pass jumps the simulation to the rise, counts T− until the satellite climbs above the horizon and T+ after, and shows the ascending and descending compass. A geostationary satellite that never sets says it is always above you. The list can be saved as CSV, and the original OMM record can be downloaded beside the prediction button.
-- **2026-11-08** — Add a Ground view next to the language switch. The camera stands at a listed place, the browser location, or typed coordinates, and keeps a selected satellite centered until the sky is dragged. Stars to magnitude 6 come from the XHIP Hipparcos compilation (Anderson & Francis, 2012), and the constellation lines are the IAU figures as drawn in Olaf Frohn's d3-celestial. From the ground, Earth is a plain dark gray sphere. Places are grouped as City, NARIT, GISTDA, and Dark Sky Area. See **Ground view**.
-- **2026-11-07** — Add My Satellites, stored only in this browser. Enter a NORAD ID or a TLE to track any catalog object with the same OMM feed, rename it, and click a NORAD ID to copy it.
-- **2026-10-19** — Major UI update. Panels are frosted black, English type is Poppins, boxes stay square while buttons are pills, the time controller starts as a clock chip on desktop and mobile, In Orbit can collapse, and sort sits above the list. Remove light mode because who the fuck use light mode?
-- **2026-10-06** — Earth is drawn as a simplified vector land mesh instead of a baked country texture. Coastlines stay smooth when zoomed in, country borders are omitted, and tiny islands are left out so the globe loads faster.
-- **2026-09-10** — According to a post on the GISTDA website dated 10 September 2026, GISTDA officially confirmed GISTDA CubeSat-1 (Cube-1). Tracking continues with the same NORAD ID **100471**.
-- **2026-09-08** — GISTDA CubeSat-1 NORAD ID updated from **100466** (`2026-195B` / OBJECT B) to **100471** (`2026-195G` / OBJECT G) based on the latest public catalog assignment for that launch.
+- **2026-11-10** — Add ground places: Los Angeles at Griffith Observatory, London at Greenwich, Tokyo at the National Astronomical Observatory of Japan, Hawaii at Keck Observatory, and Canaveral at the Vehicle Assembly Building, plus Dara Cuisine Phuket under Dark Sky Area and a Commercial group with NB Space. Choosing a place or My location in Space view turns the globe so that point is centered. See **Ground view**.
+- **2026-11-09** — The location control stays available in Space view, and the chosen place is marked on the globe. Pass prediction uses SGP4 for the next 3 days from that place. Choosing a pass jumps the simulation to the rise. The list can be saved as CSV, and the OMM record can be downloaded beside the prediction button.
+- **2026-11-08** — Add a Ground view next to the language switch. The camera stands at a listed place, the browser location, or typed coordinates, and keeps a selected satellite centered until the sky is dragged. Stars to magnitude 6 come from XHIP, and the constellation lines are the IAU figures from d3-celestial. See **Ground view**.
+- **2026-11-07** — Add My Satellites, stored only in this browser. Enter a NORAD ID or a TLE to track any catalog object, rename it, and click a NORAD ID to copy it.
+- **2026-10-19** — Simplify the interface. Time controls start closed, on desktop and on a phone. In Orbit can collapse.
+- **2026-10-06** — Draw Earth from a simplified land shape instead of a country texture, so coastlines stay clear when zoomed in and the globe loads faster.
+- **2026-09-10** — GISTDA’s site, on 10 September 2026, confirmed GISTDA CubeSat-1 (Cube-1). Tracking stays on NORAD ID **100471**.
+- **2026-09-08** — GISTDA CubeSat-1 NORAD ID updated from **100466** (`2026-195B` / OBJECT B) to **100471** (`2026-195G` / OBJECT G), matching the public catalog for that launch.
 
 ### Legacy
 
-Satellites whose primary mission has ended are listed under **Legacy** for reference only. They are not tracked on the globe. The detail view shows launch info and an **End of Mission** date.
+Satellites whose main mission has ended are under **Legacy**, for reference. They are left off the globe. The detail view shows launch info and an **End of Mission** date.
 
 | Satellite  | NORAD ID | Type                     |
 | ---------- | -------: | ------------------------ |
@@ -165,23 +185,13 @@ Satellites whose primary mission has ended are listed under **Legacy** for refer
 | Napa-2     |    48963 | Military                 |
 | LogSat-2   |    62689 | Technology Demonstration |
 
-These lists can be updated from `src/data/satellites.ts` and `src/data/legacy-satellites.ts`.
+Update these lists in `src/data/satellites.ts` and `src/data/legacy-satellites.ts`.
 
 ## Tech stack
 
-Orbit is built with **Next.js**, **React**, **TypeScript**, **Three.js**, **React Three Fiber**, **satellite.js**, and **Tailwind CSS**.
+**Next.js** is the site framework: the pages, and the server route that fetches OMM data. **React** is the interface. **TypeScript** is the language. **Three.js** and **React Three Fiber** draw the globe. **satellite.js** runs SGP4. **Tailwind CSS** styles the panels.
 
-For orbital calculation, it uses satellite.js to read OMM JSON and propagate satellite positions with SGP4.
-
-For the 3D view, it uses Three.js and React Three Fiber.
-
-For data fetching, it uses a Next.js API Route to fetch and cache OMM data from CelesTrak.
-
-For styling, it uses Tailwind CSS and dark theme tokens.
-
-## Deployment
-
-Orbit is a Next.js project, so it can be run locally with the usual commands:
+## Run it
 
 ```bash
 npm install
@@ -195,4 +205,4 @@ npm run build
 npm run start
 ```
 
-In short, Orbit is a small web project that connects raw orbital data with a visual 3D experience. It takes structured OMM mean elements and turns them into an interactive globe, so anyone can see where Thai satellites are flying above Earth.
+Orbit takes a labeled orbit snapshot and turns it into a globe you can turn, scrub, and stand on, so anyone can see where Thai satellites are above Earth.
