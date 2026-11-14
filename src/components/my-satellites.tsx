@@ -201,14 +201,16 @@ export function MySatelliteSection({
                         <VisibilityIcon visible={isVisible} />
                       </button>
                     ) : null}
-                    <button
-                      type="button"
-                      onClick={() => onRemove(satellite.noradId)}
-                      className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center text-muted transition-colors hover:text-foreground"
-                      aria-label={formatTemplate(ui.removeSatellite, { name: satellite.name })}
-                    >
-                      <RemoveIcon />
-                    </button>
+                    {satellite.builtin ? null : (
+                      <button
+                        type="button"
+                        onClick={() => onRemove(satellite.noradId)}
+                        className="mr-1 flex h-6 w-6 shrink-0 items-center justify-center text-muted transition-colors hover:text-foreground"
+                        aria-label={formatTemplate(ui.removeSatellite, { name: satellite.name })}
+                      >
+                        <RemoveIcon />
+                      </button>
+                    )}
                   </div>
                 );
               })}

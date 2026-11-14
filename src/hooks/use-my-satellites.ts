@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+import { FLIGHT_15_NORAD_ID, FLIGHT_15_OMM } from "@/data/flight-15";
 import {
   MY_SATELLITE_LIMIT,
   getMySatellites,
   getServerMySatellites,
+  isBuiltinMySatellite,
   normalizeMySatelliteName,
   parseNoradOrTle,
   setStoredMySatellites,
@@ -18,6 +20,10 @@ export type AddMySatelliteResult =
   | { ok: false; reason: "invalid" | "notFound" | "unavailable" | "limit" };
 
 async function fetchOmm(noradId: number): Promise<OmmData | "missing" | "unavailable"> {
+  if (noradId === FLIGHT_15_NORAD_ID) {
+    return FLIGHT_15_OMM;
+  }
+
   try {
     const response = await fetch(`/api/omm/${noradId}`);
     if (response.status === 503) {
@@ -42,12 +48,12 @@ export function useMySatellites() {
     getMySatellites,
     getServerMySatellites,
   );
-  const [omms, setOmms] = useState<OmmData[]>([]);
+  const [omms, setOmms] = useState<OmmData[]>([FLIGHT_15_OMM]);
   const [failedNoradIds, setFailedNoradIds] = useState<ReadonlySet<number>>(() => new Set());
   const [adding, setAdding] = useState(false);
   const [activeNoradId, setActiveNoradId] = useState<number | null>(null);
   const [hoverNoradId, setHoverNoradId] = useState<number | null>(null);
-  const ommsRef = useRef<OmmData[]>([]);
+  const ommsRef = useRef<OmmData[]>([FLIGHT_15_OMM]);
   const noradKey = satellites.map((satellite) => satellite.noradId).join(",");
 
   useEffect(() => {
@@ -168,6 +174,9 @@ export function useMySatellites() {
   }, []);
 
   const removeSatellite = useCallback((noradId: number) => {
+    if (isBuiltinMySatellite(noradId)) {
+      return;
+    }
     setStoredMySatellites(getMySatellites().filter((satellite) => satellite.noradId !== noradId));
     const nextOmms = ommsRef.current.filter((omm) => omm.noradId !== noradId);
     ommsRef.current = nextOmms;

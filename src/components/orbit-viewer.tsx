@@ -138,15 +138,6 @@ export function OrbitViewer() {
     [deselectMy, selectFutureId],
   );
 
-  useSatelliteRouteSync({
-    loading,
-    availableNoradIds,
-    selectNoradId: selectCatalogNoradId,
-    selectLegacyId: selectCatalogLegacyId,
-    selectFutureId: selectCatalogFutureId,
-    onFocusSatellite: releaseEarthFocus,
-  });
-
   const handleSelectNoradId = useCallback(
     (noradId: number) => {
       setGroundTrackRequest((request) => request + 1);
@@ -198,6 +189,16 @@ export function OrbitViewer() {
     },
     [releaseEarthFocus, selectCatalogFutureId],
   );
+
+  useSatelliteRouteSync({
+    loading,
+    availableNoradIds,
+    selectNoradId: selectCatalogNoradId,
+    selectLegacyId: selectCatalogLegacyId,
+    selectFutureId: selectCatalogFutureId,
+    selectMyNoradId: handleSelectMyNoradId,
+    onFocusSatellite: releaseEarthFocus,
+  });
 
   const handleToggleVisibility = useCallback(
     (noradId: number) => {

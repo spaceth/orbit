@@ -183,17 +183,15 @@ export function CameraController({
   const { clockRef } = useSimulationTime();
 
   useEffect(() => {
-    if (prevActiveId.current === undefined) {
-      prevActiveId.current = activeNoradId;
+    const previous = prevActiveId.current;
+    prevActiveId.current = activeNoradId;
+    if (previous === activeNoradId || (previous === undefined && activeNoradId === null)) {
       return;
     }
 
-    if (activeNoradId !== prevActiveId.current) {
-      prevActiveId.current = activeNoradId;
-      releaseLocationSlew(slew.current);
-      isFocusing.current = true;
-      focusSpeed.current = 12;
-    }
+    releaseLocationSlew(slew.current);
+    isFocusing.current = true;
+    focusSpeed.current = 12;
   }, [activeNoradId]);
 
   useEffect(() => {

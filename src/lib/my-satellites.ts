@@ -1,7 +1,17 @@
+import { FLIGHT_15_NAME, FLIGHT_15_NORAD_ID } from "@/data/flight-15";
+
 export interface MySatellite {
   noradId: number;
   name: string;
+  /** Shipped with the app. Stays in the list and is not removed. */
+  builtin?: boolean;
 }
+
+const BUILTIN_MY_SATELLITE: MySatellite = {
+  noradId: FLIGHT_15_NORAD_ID,
+  name: FLIGHT_15_NAME,
+  builtin: true,
+};
 
 export const MY_SATELLITE_STORAGE_KEY = "orbit-my-satellites";
 export const MY_SATELLITE_LIMIT = 50;
@@ -113,19 +123,42 @@ export function readMySatellites(): MySatellite[] {
   }
 }
 
+/** Built-in entries stay in the list. A stored name overrides the default. */
+export function mergeBuiltinMySatellites(stored: readonly MySatellite[]): MySatellite[] {
+  const override = stored.find((satellite) => satellite.noradId === BUILTIN_MY_SATELLITE.noradId);
+  const builtin: MySatellite = override
+    ? { ...BUILTIN_MY_SATELLITE, name: override.name }
+    : BUILTIN_MY_SATELLITE;
+  return [
+    builtin,
+    ...stored.filter((satellite) => satellite.noradId !== BUILTIN_MY_SATELLITE.noradId),
+  ];
+}
+
+export function isBuiltinMySatellite(noradId: number): boolean {
+  return noradId === BUILTIN_MY_SATELLITE.noradId;
+}
+
 export function writeMySatellites(satellites: readonly MySatellite[]) {
   localStorage.setItem(MY_SATELLITE_STORAGE_KEY, JSON.stringify(satellites));
 }
 
 let storedSatellites: MySatellite[] = [];
+const serverMySatellites = mergeBuiltinMySatellites([]);
+let visibleSatellites: MySatellite[] = serverMySatellites;
 let storageHydrated = false;
 const storageListeners = new Set<() => void>();
+
+function publishStoredMySatellites(satellites: readonly MySatellite[]) {
+  storedSatellites = satellites.slice();
+  visibleSatellites = mergeBuiltinMySatellites(storedSatellites);
+}
 
 function hydrateMySatellites() {
   if (storageHydrated || typeof window === "undefined") {
     return;
   }
-  storedSatellites = readMySatellites();
+  publishStoredMySatellites(readMySatellites());
   storageHydrated = true;
 }
 
@@ -139,17 +172,15 @@ export function subscribeMySatellites(listener: () => void) {
 
 export function getMySatellites(): MySatellite[] {
   hydrateMySatellites();
-  return storedSatellites;
+  return visibleSatellites;
 }
 
-const EMPTY_MY_SATELLITES: MySatellite[] = [];
-
 export function getServerMySatellites(): MySatellite[] {
-  return EMPTY_MY_SATELLITES;
+  return serverMySatellites;
 }
 
 export function setStoredMySatellites(satellites: readonly MySatellite[]) {
-  storedSatellites = satellites.slice();
+  publishStoredMySatellites(satellites);
   if (typeof window !== "undefined") {
     writeMySatellites(storedSatellites);
   }
