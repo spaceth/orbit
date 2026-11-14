@@ -1,34 +1,34 @@
 CCSDS_OMM_VERS = 2.0
-CREATION_DATE = 2026-11-14T01:34:49.368740
-ORIGINATOR = Spaceth 
-COMMENT Experimental Flight 15 state fit, not official orbit determination.
-COMMENT Fit to ECEF/WGS84 state supplied for 2026-11-14T01:32:00 UTC.
-COMMENT Input r km: -4346.69 4517.34 2178.39.
-COMMENT Input rotating-Earth v km/s: -4.1258 -5.2600 3.0503.
-COMMENT Earth rotation omega 0.00007292115 rad/s included in inertial velocity.
-COMMENT ECEF treated as PEF; polar motion zero and UT1 approximated as UTC.
-COMMENT Full six-component state fitted to SGP4/WGS72 mean elements at epoch.
-COMMENT Supplied apsides, SMA and eccentricity are inconsistent with this state and were not fitted.
-COMMENT Input velocity uses a backward two-point stencil; this file preserves that velocity.
-COMMENT BSTAR and mean-motion derivatives set to zero; catalog number is a placeholder.
-OBJECT_NAME = Starship Flight 15
-OBJECT_ID = 99999
+CREATION_DATE = 2026-11-14T03:20:57
+ORIGINATOR = SPACETH-UNOFFICIAL
+COMMENT Single-epoch SGP4 inverse fit; not official SpaceX/NORAD elements.
+COMMENT Input ECEF position in km; velocity interpreted as rotating-frame derivative.
+COMMENT ECEF treated as PEF; UT1=UTC; polar motion=0; Vallado GMST rotation.
+COMMENT WGS72 SGP4 gravity constants; WGS84 geodetic height for comparison only.
+COMMENT BSTAR and mean-motion derivatives fixed to zero; drag is unconstrained.
+COMMENT OBJECT_ID UNKNOWN and NORAD_CAT_ID 0 are local placeholders.
+COMMENT Earlier scalar observations are validation only; no multi-epoch fit.
+COMMENT WARNING: earlier table heights disagree by up to about 104 km.
+COMMENT Do not interpret this state fit as a consistent fit to the full table.
+COMMENT Numerical fit residual is not an estimate of physical accuracy.
+OBJECT_NAME = STARSHIP FLIGHT 15
+OBJECT_ID = UNKNOWN
 CENTER_NAME = EARTH
 REF_FRAME = TEME
 TIME_SYSTEM = UTC
 MEAN_ELEMENT_THEORY = SGP4
-EPOCH = 2026-11-14T01:32:00.000000
-MEAN_MOTION = 15.995171074753271
-ECCENTRICITY = 0.016556499392192
-INCLINATION = 30.531667249174774
-RA_OF_ASC_NODE = 173.941708937621883
-ARG_OF_PERICENTER = 316.062188542434285
-MEAN_ANOMALY = 82.376543931865868
+EPOCH = 2026-11-15T03:07:36.000000
+MEAN_MOTION = 16.028183150476
+ECCENTRICITY = 0.016670215489
+INCLINATION = 30.523944095742
+RA_OF_ASC_NODE = 174.543570215586
+ARG_OF_PERICENTER = 333.144750516541
+MEAN_ANOMALY = 87.961220875430
 EPHEMERIS_TYPE = 0
 CLASSIFICATION_TYPE = U
-NORAD_CAT_ID = 99999
-ELEMENT_SET_NO = 0
+NORAD_CAT_ID = 0
+ELEMENT_SET_NO = 1
 REV_AT_EPOCH = 0
-BSTAR = 0.0
-MEAN_MOTION_DOT = 0.0
-MEAN_MOTION_DDOT = 0.0
+BSTAR = 0.000000000000
+MEAN_MOTION_DOT = 0.000000000000
+MEAN_MOTION_DDOT = 0.000000000000
