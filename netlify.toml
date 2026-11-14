@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+
+[build.environment]
+  # Next.js 16 requires Node.js 20.9 or newer. Netlify otherwise stays on 18.
+  NODE_VERSION = "22"
+
+# Attach the OpenNext runtime. Without it, Netlify publishes no app routes
+# and every path, including /, is the platform "Page not found" page.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
