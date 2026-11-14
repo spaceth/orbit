@@ -1,23 +1,29 @@
 CCSDS_OMM_VERS = 2.0
-CREATION_DATE = 2026-11-14T00:03:39.785683
+CREATION_DATE = 2026-11-14T01:34:49.368740
 ORIGINATOR = Spaceth 
-COMMENT Synthetic elements; not an observed or officially cataloged orbit.
-COMMENT Argument of perigee assumed 0 deg; drag set to zero.
-COMMENT NORAD_CAT_ID 99999 is a placeholder; no assigned COSPAR object ID.
-COMMENT Companion OEM covers this epoch through 20 hours later at 60 s intervals.
-OBJECT_NAME = STARSHIP FLIGHT 15
+COMMENT Experimental Flight 15 state fit, not official orbit determination.
+COMMENT Fit to ECEF/WGS84 state supplied for 2026-11-14T01:32:00 UTC.
+COMMENT Input r km: -4346.69 4517.34 2178.39.
+COMMENT Input rotating-Earth v km/s: -4.1258 -5.2600 3.0503.
+COMMENT Earth rotation omega 0.00007292115 rad/s included in inertial velocity.
+COMMENT ECEF treated as PEF; polar motion zero and UT1 approximated as UTC.
+COMMENT Full six-component state fitted to SGP4/WGS72 mean elements at epoch.
+COMMENT Supplied apsides, SMA and eccentricity are inconsistent with this state and were not fitted.
+COMMENT Input velocity uses a backward two-point stencil; this file preserves that velocity.
+COMMENT BSTAR and mean-motion derivatives set to zero; catalog number is a placeholder.
+OBJECT_NAME = Starship Flight 15
 OBJECT_ID = 99999
 CENTER_NAME = EARTH
 REF_FRAME = TEME
 TIME_SYSTEM = UTC
 MEAN_ELEMENT_THEORY = SGP4
-EPOCH = 2026-11-14T23:55:59.999808
-MEAN_MOTION = 15.99822242
-ECCENTRICITY = 0.0020600
-INCLINATION = 30.5180
-RA_OF_ASC_NODE = 175.2568
-ARG_OF_PERICENTER = 0.0000
-MEAN_ANOMALY = 16.9563
+EPOCH = 2026-11-14T01:32:00.000000
+MEAN_MOTION = 15.995171074753271
+ECCENTRICITY = 0.016556499392192
+INCLINATION = 30.531667249174774
+RA_OF_ASC_NODE = 173.941708937621883
+ARG_OF_PERICENTER = 316.062188542434285
+MEAN_ANOMALY = 82.376543931865868
 EPHEMERIS_TYPE = 0
 CLASSIFICATION_TYPE = U
 NORAD_CAT_ID = 99999
